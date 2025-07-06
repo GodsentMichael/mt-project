@@ -16,6 +16,7 @@ import { Star, Heart, ShoppingCart, Search, Filter, Loader2 } from "lucide-react
 import { useCartStore } from "@/lib/store/cart-store"
 import { useWishlistStore } from "@/lib/store/wishlist-store-new"
 import { useToast } from "@/hooks/use-toast"
+import { SimplePagination } from "@/components/ui/pagination"
 
 interface Product {
   _id: string
@@ -317,77 +318,80 @@ export default function ProductsPage() {
               </div>
             ) : (
               <>
-                <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6">
+                <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2 sm:gap-3 md:gap-4 lg:gap-6">
                   {data?.products.map((product) => (
-                    <Card key={product._id} className="group hover:shadow-xl transition-all duration-300">
-                      <CardContent className="p-0">
+                    <Card key={product._id} className="group hover:shadow-xl transition-all duration-300 h-full flex flex-col">
+                      <CardContent className="p-0 flex flex-col h-full">
                         <div className="relative overflow-hidden rounded-t-lg">
                           <Link href={`/products/${product.slug}`}>
-                            <Image
-                              src={product.images[0] || "/placeholder.svg?height=300&width=300"}
-                              alt={product.name}
-                              width={300}
-                              height={300}
-                              className="w-full h-48 sm:h-64 object-cover group-hover:scale-105 transition-transform duration-300"
-                            />
+                            <div className="aspect-square relative">
+                              <Image
+                                src={product.images[0] || "/placeholder.svg"}
+                                alt={product.name}
+                                fill
+                                className="object-cover group-hover:scale-105 transition-transform duration-300"
+                                sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
+                              />
+                            </div>
                           </Link>
                           
                           {product.comparePrice && product.comparePrice > product.price && (
-                            <Badge className="absolute top-3 left-3 bg-red-500 hover:bg-red-600">
+                            <Badge className="absolute top-1 left-1 sm:top-1.5 sm:left-1.5 md:top-3 md:left-3 bg-red-500 hover:bg-red-600 text-[10px] sm:text-xs px-1 py-0.5 sm:px-1.5 sm:py-0.5 md:px-2 md:py-1">
                               {Math.round(((product.comparePrice - product.price) / product.comparePrice) * 100)}% OFF
                             </Badge>
                           )}
                           
-                          <div className="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity">
+                          <div className="absolute top-1 right-1 sm:top-1.5 sm:right-1.5 md:top-3 md:right-3 opacity-0 group-hover:opacity-100 transition-opacity">
                             <Button
                               size="sm"
                               variant="secondary"
-                              className="w-8 h-8 p-0"
+                              className="w-5 h-5 sm:w-6 sm:h-6 md:w-8 md:h-8 p-0 bg-white/80 hover:bg-white"
                               onClick={() => handleToggleWishlist(product)}
                             >
-                              <Heart className={`w-4 h-4 ${isInWishlist(product._id) ? 'fill-red-500 text-red-500' : ''}`} />
+                              <Heart className={`w-2.5 h-2.5 sm:w-3 sm:h-3 md:w-4 md:h-4 ${isInWishlist(product._id) ? 'fill-red-500 text-red-500' : ''}`} />
                             </Button>
                           </div>
                         </div>
                         
-                        <div className="p-4">
+                        <div className="p-1.5 sm:p-2 md:p-3 lg:p-4 flex flex-col flex-1">
                           <Link href={`/products/${product.slug}`}>
-                            <h3 className="font-semibold text-sm sm:text-lg text-gray-900 mb-2 group-hover:text-brand-600 transition-colors line-clamp-2">
+                            <h3 className="font-semibold text-[10px] sm:text-xs md:text-sm lg:text-base text-gray-900 mb-1 sm:mb-1.5 md:mb-2 group-hover:text-brand-600 transition-colors line-clamp-2 leading-tight min-h-[1.75rem] sm:min-h-[2rem] md:min-h-[2.25rem]">
                               {product.name}
                             </h3>
                           </Link>
                           
-                          <div className="flex items-center mb-2">
+                          <div className="flex items-center mb-1.5 sm:mb-2">
                             {[...Array(5)].map((_, i) => (
                               <Star
                                 key={i}
-                                className={`w-3 h-3 sm:w-4 sm:h-4 ${
+                                className={`w-2 h-2 sm:w-2.5 sm:h-2.5 md:w-3 md:h-3 ${
                                   i < Math.floor(product.averageRating)
                                     ? "text-yellow-400 fill-current"
                                     : "text-gray-300"
                                 }`}
                               />
                             ))}
-                            <span className="text-xs sm:text-sm text-gray-600 ml-2">({product.reviewCount})</span>
+                            <span className="text-[9px] sm:text-xs text-gray-600 ml-1">({product.reviewCount || 0})</span>
                           </div>
                           
-                          <div className="flex items-center justify-between mb-4">
-                            <div className="flex items-center space-x-2">
-                              <span className="text-lg font-bold text-gray-900">{formatPrice(product.price)}</span>
+                          <div className="mt-auto">
+                            <div className="flex flex-col gap-0.5 mb-2 sm:mb-3">
+                              <span className="text-xs sm:text-sm md:text-base lg:text-lg font-bold text-gray-900 truncate">{formatPrice(product.price)}</span>
                               {product.comparePrice && (
-                                <span className="text-sm text-gray-500 line-through">{formatPrice(product.comparePrice)}</span>
+                                <span className="text-[10px] sm:text-xs text-gray-500 line-through truncate">{formatPrice(product.comparePrice)}</span>
                               )}
                             </div>
+                            
+                            <Button 
+                              onClick={() => handleAddToCart(product)}
+                              className="w-full bg-brand-500 hover:bg-brand-600 text-[10px] sm:text-xs md:text-sm py-1 sm:py-1.5 md:py-2"
+                              size="sm"
+                            >
+                              <ShoppingCart className="w-2.5 h-2.5 sm:w-3 sm:h-3 md:w-4 md:h-4 mr-1" />
+                              <span className="hidden sm:inline">Add to Cart</span>
+                              <span className="sm:hidden">Add</span>
+                            </Button>
                           </div>
-                          
-                          <Button 
-                            onClick={() => handleAddToCart(product)}
-                            className="w-full bg-brand-500 hover:bg-brand-600 text-xs sm:text-sm"
-                            size="sm"
-                          >
-                            <ShoppingCart className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
-                            Add to Cart
-                          </Button>
                         </div>
                       </CardContent>
                     </Card>
@@ -396,26 +400,12 @@ export default function ProductsPage() {
 
                 {/* Pagination */}
                 {data && data.pagination.totalPages > 1 && (
-                  <div className="flex justify-center items-center mt-12 space-x-2">
-                    <Button
-                      variant="outline"
-                      disabled={!data.pagination.hasPrev}
-                      onClick={() => updateURL({ page: (parseInt(page) - 1).toString() })}
-                    >
-                      Previous
-                    </Button>
-                    
-                    <span className="px-4 py-2 text-sm text-gray-600">
-                      Page {data.pagination.currentPage} of {data.pagination.totalPages}
-                    </span>
-                    
-                    <Button
-                      variant="outline"
-                      disabled={!data.pagination.hasNext}
-                      onClick={() => updateURL({ page: (parseInt(page) + 1).toString() })}
-                    >
-                      Next
-                    </Button>
+                  <div className="mt-12">
+                    <SimplePagination
+                      currentPage={data.pagination.currentPage}
+                      totalPages={data.pagination.totalPages}
+                      onPageChange={(page) => updateURL({ page: page.toString() })}
+                    />
                   </div>
                 )}
 

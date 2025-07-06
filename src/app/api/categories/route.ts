@@ -6,22 +6,22 @@ import Category from "@/lib/models/Category"
 
 export async function GET() {
   try {
-    console.log("Categories API called")
-    console.log("Environment check:", {
-      DATABASE_URL: !!process.env.DATABASE_URL,
-      MONGODB_URI: !!process.env.MONGODB_URI
-    })
+    // console.log("Categories API called")
+    // console.log("Environment check:", {
+    //   DATABASE_URL: !!process.env.DATABASE_URL,
+    //   MONGODB_URI: !!process.env.MONGODB_URI
+    // })
     
     await connectDB()
-    console.log("Database connected")
+    // console.log("Database connected")
     
     // First try to get all categories
     const allCategories = await Category.find({})
       .select('name slug _id status')
       .lean()
     
-    console.log("All categories found:", allCategories.length)
-    console.log("All categories data:", allCategories)
+    // console.log("All categories found:", allCategories.length)
+    // console.log("All categories data:", allCategories)
     
     // If no categories exist, create default ones
     if (allCategories.length === 0) {
@@ -49,6 +49,12 @@ export async function GET() {
           name: "Accessories",
           slug: "accessories",
           description: "Complete your look with perfect accessories",
+          status: "ACTIVE"
+        },
+        {
+          name: "Kiddies",
+          slug: "kiddies",
+          description: "Style your kids with perfect kids wears",
           status: "ACTIVE"
         }
       ]

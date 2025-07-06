@@ -3,7 +3,7 @@
 import { useSession } from "next-auth/react"
 import { useRouter } from "next/navigation"
 import { useEffect, useState } from "react"
-import { User, Package, Heart, Settings, MapPin, CreditCard } from "lucide-react"
+import { User, Package, Heart, Settings, MapPin, CreditCard, Trash2 } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -11,6 +11,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Header } from "@/components/layout/header"
 import { Footer } from "@/components/layout/footer"
+import { useWishlist } from "@/hooks/use-wishlist"
+import Image from "next/image"
+import Link from "next/link"
 
 interface Order {
   _id: string
@@ -36,15 +39,17 @@ interface WishlistItem {
     images: string[]
     price: number
     discountPrice?: number
+    slug: string
   }
+  createdAt: string
 }
 
 export default function MyAccountPage() {
   const { data: session, status } = useSession()
   const router = useRouter()
   const [orders, setOrders] = useState<Order[]>([])
-  const [wishlist, setWishlist] = useState<WishlistItem[]>([])
   const [loading, setLoading] = useState(true)
+  const { serverWishlist, deleteFromWishlist, isLoading: wishlistLoading } = useWishlist()
 
   useEffect(() => {
     if (status === "loading") return
@@ -54,13 +59,11 @@ export default function MyAccountPage() {
       return
     }
 
-    // Fetch user orders and wishlist
+    // Fetch user orders
     Promise.all([
-      fetch('/api/user/orders').then(res => res.ok ? res.json() : []),
-      fetch('/api/user/wishlist').then(res => res.ok ? res.json() : [])
-    ]).then(([ordersData, wishlistData]) => {
+      fetch('/api/user/orders').then(res => res.ok ? res.json() : [])
+    ]).then(([ordersData]) => {
       setOrders(ordersData)
-      setWishlist(wishlistData)
     }).catch(console.error).finally(() => setLoading(false))
   }, [session, status, router])
 
@@ -133,7 +136,7 @@ export default function MyAccountPage() {
                   <Heart className="h-4 w-4 text-muted-foreground" />
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold">{wishlist.length}</div>
+                  <div className="text-2xl font-bold">{serverWishlist.length}</div>
                 </CardContent>
               </Card>
 
@@ -144,7 +147,7 @@ export default function MyAccountPage() {
                 </CardHeader>
                 <CardContent>
                   <div className="text-2xl font-bold">
-                    ${orders.reduce((sum, order) => sum + order.total, 0).toFixed(2)}
+                    ₦{orders.reduce((sum, order) => sum + order.total, 0).toFixed(2)}
                   </div>
                 </CardContent>
               </Card>
@@ -163,7 +166,7 @@ export default function MyAccountPage() {
                       <p className="text-sm text-gray-500">{new Date(order.createdAt).toLocaleDateString()}</p>
                     </div>
                     <div className="text-right">
-                      <p className="font-medium">${order.total.toFixed(2)}</p>
+                      <p className="font-medium">₦{order.total.toFixed(2)}</p>
                       <Badge className={getStatusColor(order.status)}>{order.status}</Badge>
                     </div>
                   </div>
@@ -191,7 +194,7 @@ export default function MyAccountPage() {
                           <p className="text-sm text-gray-500">{new Date(order.createdAt).toLocaleDateString()}</p>
                         </div>
                         <div className="text-right">
-                          <p className="font-medium">${order.total.toFixed(2)}</p>
+                          <p className="font-medium">₦{order.total.toFixed(2)}</p>
                           <Badge className={getStatusColor(order.status)}>{order.status}</Badge>
                         </div>
                       </div>
@@ -205,7 +208,7 @@ export default function MyAccountPage() {
                             />
                             <div>
                               <p className="font-medium text-sm">{item.productId.name}</p>
-                              <p className="text-xs text-gray-500">Qty: {item.quantity} × ${item.price}</p>
+                              <p className="text-xs text-gray-500">Qty: {item.quantity} × ₦{item.price}</p>
                             </div>
                           </div>
                         ))}
@@ -233,44 +236,89 @@ export default function MyAccountPage() {
                 <CardTitle>My Wishlist</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {wishlist.map((item) => (
-                    <div key={item._id} className="border rounded-lg overflow-hidden">
-                      <img 
-                        src={item.productId.images[0] || '/placeholder.svg'} 
-                        alt={item.productId.name}
-                        className="w-full h-48 object-cover"
-                      />
-                      <div className="p-4">
-                        <h3 className="font-medium mb-2">{item.productId.name}</h3>
-                        <div className="flex items-center justify-between">
-                          <div>
-                            {item.productId.discountPrice ? (
-                              <div className="flex items-center gap-2">
-                                <span className="font-bold text-brand-600">${item.productId.discountPrice}</span>
-                                <span className="text-sm text-gray-500 line-through">${item.productId.price}</span>
-                              </div>
-                            ) : (
-                              <span className="font-bold">${item.productId.price}</span>
-                            )}
-                          </div>
-                          <Button size="sm" onClick={() => router.push(`/products/${item.productId._id}`)}>
-                            View
-                          </Button>
+                {wishlistLoading ? (
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {[1, 2, 3].map((i) => (
+                      <div key={i} className="border rounded-lg overflow-hidden animate-pulse">
+                        <div className="w-full h-48 bg-gray-200"></div>
+                        <div className="p-4 space-y-2">
+                          <div className="h-4 bg-gray-200 rounded"></div>
+                          <div className="h-4 bg-gray-200 rounded w-2/3"></div>
                         </div>
                       </div>
-                    </div>
-                  ))}
-                  {wishlist.length === 0 && (
-                    <div className="col-span-full text-center py-8">
-                      <Heart className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-                      <p className="text-gray-500">Your wishlist is empty</p>
-                      <Button className="mt-4" onClick={() => router.push('/products')}>
-                        Discover Products
-                      </Button>
-                    </div>
-                  )}
-                </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {serverWishlist.map((item: WishlistItem) => (
+                      <div key={item._id} className="border rounded-lg overflow-hidden group">
+                        <Link href={`/products/${item.productId.slug}`}>
+                          <div className="relative">
+                            <Image 
+                              src={item.productId.images[0] || '/placeholder.svg'} 
+                              alt={item.productId.name}
+                              width={300}
+                              height={200}
+                              className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300"
+                            />
+                          </div>
+                        </Link>
+                        <div className="p-4">
+                          <Link href={`/products/${item.productId.slug}`}>
+                            <h3 className="font-medium mb-2 hover:text-brand-600 transition-colors line-clamp-2">
+                              {item.productId.name}
+                            </h3>
+                          </Link>
+                          <div className="flex items-center justify-between">
+                            <div>
+                              {item.productId.discountPrice ? (
+                                <div className="flex items-center gap-2">
+                                  <span className="font-bold text-brand-600">
+                                    ₦{item.productId.discountPrice.toLocaleString()}
+                                  </span>
+                                  <span className="text-sm text-gray-500 line-through">
+                                    ₦{item.productId.price.toLocaleString()}
+                                  </span>
+                                </div>
+                              ) : (
+                                <span className="font-bold">₦{item.productId.price.toLocaleString()}</span>
+                              )}
+                            </div>
+                            <div className="flex gap-2">
+                              <Button 
+                                size="sm" 
+                                variant="outline"
+                                onClick={() => deleteFromWishlist(item.productId._id)}
+                                disabled={wishlistLoading}
+                              >
+                                <Trash2 className="w-3 h-3" />
+                              </Button>
+                              <Button 
+                                size="sm" 
+                                asChild
+                              >
+                                <Link href={`/products/${item.productId.slug}`}>
+                                  View
+                                </Link>
+                              </Button>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                    {serverWishlist.length === 0 && !wishlistLoading && (
+                      <div className="col-span-full text-center py-8">
+                        <Heart className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+                        <p className="text-gray-500">Your wishlist is empty</p>
+                        <Button className="mt-4" asChild>
+                          <Link href="/products">
+                            Discover Products
+                          </Link>
+                        </Button>
+                      </div>
+                    )}
+                  </div>
+                )}
               </CardContent>
             </Card>
           </TabsContent>

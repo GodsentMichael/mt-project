@@ -39,32 +39,32 @@ export function HeroSection() {
             </div>
 
             {/* Features */}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 pt-8">
-              <div className="flex items-center space-x-3">
-                <div className="w-10 h-10 bg-brand-100 rounded-lg flex items-center justify-center">
-                  <Truck className="w-5 h-5 text-brand-600" />
+            <div className="grid grid-cols-3 gap-2 sm:gap-4 md:gap-6 pt-6 sm:pt-8">
+              <div className="flex flex-col sm:flex-row items-center sm:items-center space-y-1 sm:space-y-0 sm:space-x-3">
+                <div className="w-6 h-6 sm:w-8 sm:h-8 md:w-10 md:h-10 bg-brand-100 rounded-lg flex items-center justify-center">
+                  <Truck className="w-3 h-3 sm:w-4 sm:h-4 md:w-5 md:h-5 text-brand-600" />
                 </div>
-                <div>
-                  <p className="font-semibold text-sm">Free Shipping</p>
-                  <p className="text-xs text-gray-600">On orders over $50</p>
-                </div>
-              </div>
-              <div className="flex items-center space-x-3">
-                <div className="w-10 h-10 bg-brand-100 rounded-lg flex items-center justify-center">
-                  <Shield className="w-5 h-5 text-brand-600" />
-                </div>
-                <div>
-                  <p className="font-semibold text-sm">Secure Payment</p>
-                  <p className="text-xs text-gray-600">100% protected</p>
+                <div className="text-center sm:text-left">
+                  <p className="font-semibold text-xs sm:text-sm">Free Shipping</p>
+                  <p className="text-[10px] sm:text-xs text-gray-600">On orders over $50</p>
                 </div>
               </div>
-              <div className="flex items-center space-x-3">
-                <div className="w-10 h-10 bg-brand-100 rounded-lg flex items-center justify-center">
-                  <Star className="w-5 h-5 text-brand-600" />
+              <div className="flex flex-col sm:flex-row items-center sm:items-center space-y-1 sm:space-y-0 sm:space-x-3">
+                <div className="w-6 h-6 sm:w-8 sm:h-8 md:w-10 md:h-10 bg-brand-100 rounded-lg flex items-center justify-center">
+                  <Shield className="w-3 h-3 sm:w-4 sm:h-4 md:w-5 md:h-5 text-brand-600" />
                 </div>
-                <div>
-                  <p className="font-semibold text-sm">Top Quality</p>
-                  <p className="text-xs text-gray-600">Premium products</p>
+                <div className="text-center sm:text-left">
+                  <p className="font-semibold text-xs sm:text-sm">Secure Payment</p>
+                  <p className="text-[10px] sm:text-xs text-gray-600">100% protected</p>
+                </div>
+              </div>
+              <div className="flex flex-col sm:flex-row items-center sm:items-center space-y-1 sm:space-y-0 sm:space-x-3">
+                <div className="w-6 h-6 sm:w-8 sm:h-8 md:w-10 md:h-10 bg-brand-100 rounded-lg flex items-center justify-center">
+                  <Star className="w-3 h-3 sm:w-4 sm:h-4 md:w-5 md:h-5 text-brand-600" />
+                </div>
+                <div className="text-center sm:text-left">
+                  <p className="font-semibold text-xs sm:text-sm">Top Quality</p>
+                  <p className="text-[10px] sm:text-xs text-gray-600">Premium products</p>
                 </div>
               </div>
             </div>

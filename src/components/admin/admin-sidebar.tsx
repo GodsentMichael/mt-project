@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation"
 import { LayoutDashboard, Package, ShoppingCart, Users, Star, Mail, Settings, Menu, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
+import Image from "next/image"
 
 const navigation = [
   { name: "Dashboard", href: "/admin", icon: LayoutDashboard },
@@ -40,8 +41,15 @@ export function AdminSidebar() {
         <div className="flex flex-col h-full">
           {/* Logo */}
           <div className="flex items-center px-6 py-4 border-b border-gray-200">
-            <div className="w-8 h-8 bg-gradient-to-r from-brand-500 to-brand-600 rounded-lg flex items-center justify-center">
-              <span className="text-white font-bold text-lg">S</span>
+            <div className="w-12 h-12 rounded-lg flex items-center justify-center ">
+              <Image
+              src="/logo-removebg.png"
+              alt="Logo"
+              width={52}
+              height={52}
+              className="w-16 h-16 object-contain rounded-lg"
+              priority
+              />
             </div>
             <span className="ml-2 font-heading font-bold text-xl">Admin Panel</span>
           </div>

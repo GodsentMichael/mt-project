@@ -9,11 +9,13 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent } from "@/components/ui/card"
 import { Separator } from "@/components/ui/separator"
-import { useToast } from "@/hooks/use-toast"
 import { useCartStore } from "@/lib/store/cart-store"
-import { useWishlistStore } from "@/lib/store/wishlist-store-new"
+import { useWishlist } from "@/hooks/use-wishlist"
 import { Header } from "@/components/layout/header"
 import { Footer } from "@/components/layout/footer"
+import { ProductReviews } from "@/components/products/product-reviews"
+import { AddReview } from "@/components/products/add-review"
+import { toast } from "sonner"
 
 interface Product {
   _id: string
@@ -46,7 +48,7 @@ interface SimilarProduct {
 export default function ProductDetailsPage() {
   const params = useParams()
   const slug = params.slug as string
-  const { toast } = useToast()
+  const [reviewsKey, setReviewsKey] = useState(0) // For triggering reviews refresh
   
   const [product, setProduct] = useState<Product | null>(null)
   const [similarProducts, setSimilarProducts] = useState<SimilarProduct[]>([])
@@ -56,7 +58,7 @@ export default function ProductDetailsPage() {
   const [isZoomed, setIsZoomed] = useState(false)
   
   const { addItem: addToCart } = useCartStore()
-  const { addItem: addToWishlist, isInWishlist } = useWishlistStore()
+  const { toggleWishlist, isInWishlist } = useWishlist()
 
   useEffect(() => {
     fetchProduct()
@@ -86,11 +88,7 @@ export default function ProductDetailsPage() {
       }
     } catch (error) {
       console.error('Error fetching product:', error)
-      toast({
-        title: "Error",
-        description: "Failed to load product details",
-        variant: "destructive",
-      })
+      toast.error("Failed to load product details")
     } finally {
       setLoading(false)
     }
@@ -121,36 +119,19 @@ export default function ProductDetailsPage() {
       })
     }
     
-    toast({
-      title: "Added to cart",
-      description: `${quantity} × ${product.name} added to your cart`,
-      variant: "success",
-    })
+    toast.success(`${quantity} × ${product.name} added to your cart`)
   }
 
-  const handleToggleWishlist = () => {
+  const handleToggleWishlist = async () => {
     if (!product) return
     
-    if (isInWishlist(product._id)) {
-      toast({
-        title: "Already in wishlist",
-        description: `${product.name} is already in your wishlist`,
-        variant: "warning",
-      })
-    } else {
-      addToWishlist({
-        id: product._id,
-        name: product.name,
-        price: product.price,
-        image: product.images[0],
-        slug: product.slug,
-      })
-      toast({
-        title: "Added to wishlist",
-        description: `${product.name} has been added to your wishlist`,
-        variant: "success",
-      })
-    }
+    await toggleWishlist({
+      id: product._id,
+      name: product.name,
+      price: product.price,
+      image: product.images[0],
+      slug: product.slug,
+    })
   }
 
   if (loading) {
@@ -398,36 +379,58 @@ export default function ProductDetailsPage() {
             </div>
 
             {/* Features */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-6 border-t">
-              <div className="flex items-center space-x-3">
-                <div className="w-10 h-10 bg-brand-100 rounded-full flex items-center justify-center">
-                  <Truck className="w-5 h-5 text-brand-600" />
+            <div className="flex flex-col md:grid md:grid-cols-3 gap-4 pt-6 border-t">
+                <div className="flex items-center space-x-3 flex-1">
+                    <div className="w-10 h-10 bg-brand-100 rounded-full flex items-center justify-center">
+                        <Truck className="w-5 h-5 text-brand-600" />
+                    </div>
+                    <div>
+                        <p className="font-medium text-gray-900">Free Shipping</p>
+                        <p className="text-sm text-gray-600">On orders over ₦25,000</p>
+                    </div>
                 </div>
-                <div>
-                  <p className="font-medium text-gray-900">Free Shipping</p>
-                  <p className="text-sm text-gray-600">On orders over ₦25,000</p>
+                
+                <div className="flex items-center space-x-3 flex-1">
+                    <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
+                        <Shield className="w-5 h-5 text-green-600" />
+                    </div>
+                    <div>
+                        <p className="font-medium text-gray-900">Secure Payment</p>
+                        <p className="text-sm text-gray-600">SSL Encrypted</p>
+                    </div>
                 </div>
-              </div>
-              
-              <div className="flex items-center space-x-3">
-                <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
-                  <Shield className="w-5 h-5 text-green-600" />
+                
+                <div className="flex items-center space-x-3 flex-1">
+                    <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
+                        <RotateCcw className="w-5 h-5 text-blue-600" />
+                    </div>
+                    <div>
+                        <p className="font-medium text-gray-900">Easy Returns</p>
+                        <p className="text-sm text-gray-600">30-day policy</p>
+                    </div>
                 </div>
-                <div>
-                  <p className="font-medium text-gray-900">Secure Payment</p>
-                  <p className="text-sm text-gray-600">SSL Encrypted</p>
-                </div>
-              </div>
-              
-              <div className="flex items-center space-x-3">
-                <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
-                  <RotateCcw className="w-5 h-5 text-blue-600" />
-                </div>
-                <div>
-                  <p className="font-medium text-gray-900">Easy Returns</p>
-                  <p className="text-sm text-gray-600">30-day policy</p>
-                </div>
-              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Reviews Section */}
+        <div className="mb-16">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <div className="lg:col-span-2">
+              <ProductReviews 
+                key={reviewsKey}
+                productSlug={slug}
+                averageRating={4.8}
+                reviewCount={124}
+              />
+            </div>
+            <div>
+              <AddReview 
+                productSlug={slug}
+                onReviewAdded={() => {
+                  setReviewsKey(prev => prev + 1)
+                }}
+              />
             </div>
           </div>
         </div>

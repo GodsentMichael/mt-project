@@ -2,6 +2,7 @@
 
 import { ShoppingCart, Plus, Minus, X } from "lucide-react"
 import Image from "next/image"
+import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import {
   Sheet,
@@ -27,14 +28,11 @@ export function ShoppingCartSheet() {
   return (
     <Sheet>
       <SheetTrigger asChild>
-        <Button variant="outline" size="sm" className="relative">
-          <ShoppingCart className="h-4 w-4" />
+        <Button variant="ghost" className="relative p-2 hover:bg-muted rounded-full transition-colors">
+          <ShoppingCart className="h-5 w-5" />
           {totalItems > 0 && (
-            <Badge
-              variant="destructive"
-              className="absolute -right-2 -top-2 h-5 w-5 rounded-full p-0 text-xs"
-            >
-              {totalItems}
+            <Badge className="absolute -top-0.5 -right-0.5 w-4 h-4 sm:w-5 sm:h-5 flex items-center justify-center p-0 text-[10px] sm:text-xs bg-brand-500 hover:bg-brand-600 min-w-[16px] sm:min-w-[20px]">
+              {totalItems > 99 ? '99+' : totalItems}
             </Badge>
           )}
         </Button>
@@ -118,8 +116,10 @@ export function ShoppingCartSheet() {
                 </div>
                 
                 <div className="space-y-2">
-                  <Button className="w-full" size="lg">
-                    Proceed to Checkout
+                  <Button className="w-full" size="lg" asChild>
+                    <Link href="/checkout">
+                      Proceed to Checkout
+                    </Link>
                   </Button>
                   <Button
                     variant="outline"

@@ -6,13 +6,12 @@ import { useState } from "react"
 import { Mail, CheckCircle } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { useToast } from "@/hooks/use-toast"
+import { toast } from "sonner"
 
 export function NewsletterSection() {
   const [email, setEmail] = useState("")
   const [isLoading, setIsLoading] = useState(false)
   const [isSubscribed, setIsSubscribed] = useState(false)
-  const { toast } = useToast()
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -28,20 +27,12 @@ export function NewsletterSection() {
       if (response.ok) {
         setIsSubscribed(true)
         setEmail("")
-        toast({
-          title: "Successfully subscribed!",
-          description: "Thank you for subscribing to our newsletter.",
-          variant: "success",
-        })
+        toast.success("Thank you for subscribing to our newsletter!")
       } else {
         throw new Error("Subscription failed")
       }
     } catch (error) {
-      toast({
-        title: "Subscription failed",
-        description: "Please try again later.",
-        variant: "destructive",
-      })
+      toast.error("Subscription failed. Please try again later.")
     } finally {
       setIsLoading(false)
     }

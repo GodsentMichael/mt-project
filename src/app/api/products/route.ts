@@ -16,10 +16,16 @@ export async function GET(request: NextRequest) {
     const sortOrder = searchParams.get('sortOrder') || 'desc'
     const page = parseInt(searchParams.get('page') || '1')
     const limit = parseInt(searchParams.get('limit') || '12')
+    const featured = searchParams.get('featured')
     const skip = (page - 1) * limit
 
     // Build filter object
     const filter: any = { status: 'ACTIVE' }
+
+    // Featured filter
+    if (featured === 'true') {
+      filter.featured = true
+    }
 
     // Category filter
     if (category && category !== 'all') {

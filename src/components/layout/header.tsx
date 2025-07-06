@@ -84,8 +84,8 @@ export function Header() {
             <Link href="/wishlist" className="relative p-2 hover:bg-muted rounded-full transition-colors">
               <Heart className="w-5 h-5" />
               {wishlistState.items.length > 0 && (
-                <Badge className="absolute -top-1 -right-1 w-5 h-5 flex items-center justify-center p-0 text-xs bg-brand-500">
-                  {wishlistState.items.length}
+                <Badge className="absolute -top-0.5 -right-0.5 w-4 h-4 sm:w-5 sm:h-5 flex items-center justify-center p-0 text-[10px] sm:text-xs bg-brand-500 min-w-[16px] sm:min-w-[20px]">
+                  {wishlistState.items.length > 99 ? '99+' : wishlistState.items.length}
                 </Badge>
               )}
             </Link>

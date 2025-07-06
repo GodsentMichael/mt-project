@@ -1,20 +1,30 @@
 "use client"
 
+import { useEffect } from "react"
 import { Header } from "@/components/layout/header"
 import { Footer } from "@/components/layout/footer"
-import { useWishlistStore } from "@/lib/store/wishlist-store-new"
+import { useWishlist } from "@/hooks/use-wishlist"
 import Image from "next/image"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Trash2, ShoppingCart, Heart } from "lucide-react"
 import { useCartStore } from "@/lib/store/cart-store"
-import { useToast } from "@/hooks/use-toast"
+import { toast } from "sonner"
 
 export default function WishlistPage() {
-  const { items, removeItem, clearWishlist } = useWishlistStore()
+  const { serverWishlist, deleteFromWishlist, isLoading, refetch } = useWishlist()
   const { addItem } = useCartStore()
-  const { toast } = useToast()
+
+  // Listen for wishlist updates and refetch
+  useEffect(() => {
+    const handleWishlistUpdate = () => {
+      refetch()
+    }
+
+    window.addEventListener('wishlistUpdated', handleWishlistUpdate)
+    return () => window.removeEventListener('wishlistUpdated', handleWishlistUpdate)
+  }, [refetch])
 
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat('en-NG', {
@@ -23,20 +33,23 @@ export default function WishlistPage() {
     }).format(price)
   }
 
-  const moveToCart = (item: any) => {
+  const moveToCart = async (item: any) => {
     addItem({
-      id: item.id,
-      name: item.name,
-      price: item.price,
-      image: item.image,
-      slug: item.slug,
+      id: item.productId._id,
+      name: item.productId.name,
+      price: item.productId.discountPrice || item.productId.price,
+      image: item.productId.images[0] || "/placeholder.svg",
+      slug: item.productId.slug,
     })
-    removeItem(item.id)
-    toast({
-      title: "Moved to cart",
-      description: `${item.name} has been added to your cart`,
-      variant: "success",
-    })
+    
+    const success = await deleteFromWishlist(item.productId._id)
+    if (success) {
+      toast.success(`${item.productId.name} has been added to your cart`)
+    }
+  }
+
+  const handleDeleteFromWishlist = async (productId: string) => {
+    await deleteFromWishlist(productId)
   }
 
   return (
@@ -48,7 +61,12 @@ export default function WishlistPage() {
           <p className="text-gray-600">Items you've saved for later</p>
         </div>
 
-        {items.length === 0 ? (
+        {isLoading ? (
+          <div className="text-center py-16">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-brand-600 mx-auto"></div>
+            <p className="text-gray-600 mt-4">Loading your wishlist...</p>
+          </div>
+        ) : serverWishlist.length === 0 ? (
           <div className="text-center py-16">
             <Heart className="w-24 h-24 text-gray-300 mx-auto mb-6" />
             <h2 className="text-2xl font-semibold text-gray-900 mb-4">Your wishlist is empty</h2>
@@ -60,27 +78,19 @@ export default function WishlistPage() {
         ) : (
           <>
             <div className="flex justify-between items-center mb-6">
-              <p className="text-gray-600">{items.length} item{items.length !== 1 ? 's' : ''} in your wishlist</p>
-              <Button
-                variant="outline"
-                onClick={clearWishlist}
-                className="text-red-600 hover:text-red-700 hover:bg-red-50"
-              >
-                <Trash2 className="w-4 h-4 mr-2" />
-                Clear All
-              </Button>
+              <p className="text-gray-600">{serverWishlist.length} item{serverWishlist.length !== 1 ? 's' : ''} in your wishlist</p>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-              {items.map((item) => (
-                <Card key={item.id} className="group hover:shadow-lg transition-shadow">
+              {serverWishlist.map((item) => (
+                <Card key={item._id} className="group hover:shadow-lg transition-shadow">
                   <CardContent className="p-0">
                     <div className="relative">
-                      <Link href={`/products/${item.slug}`}>
+                      <Link href={`/products/${item.productId.slug}`}>
                         <div className="aspect-square relative overflow-hidden rounded-t-lg">
                           <Image
-                            src={item.image || "/placeholder.svg?height=300&width=300"}
-                            alt={item.name}
+                            src={item.productId.images[0] || "/placeholder.svg?height=300&width=300"}
+                            alt={item.productId.name}
                             fill
                             className="object-cover group-hover:scale-105 transition-transform duration-300"
                           />
@@ -90,21 +100,22 @@ export default function WishlistPage() {
                         variant="ghost"
                         size="sm"
                         className="absolute top-2 right-2 text-red-500 hover:text-red-600 hover:bg-white/80"
-                        onClick={() => removeItem(item.id)}
+                        onClick={() => handleDeleteFromWishlist(item.productId._id)}
+                        disabled={isLoading}
                       >
                         <Trash2 className="w-4 h-4" />
                       </Button>
                     </div>
 
                     <div className="p-4">
-                      <Link href={`/products/${item.slug}`}>
+                      <Link href={`/products/${item.productId.slug}`}>
                         <h3 className="font-semibold text-lg text-gray-900 mb-2 hover:text-brand-600 transition-colors line-clamp-2">
-                          {item.name}
+                          {item.productId.name}
                         </h3>
                       </Link>
                       
                       <p className="text-xl font-bold text-gray-900 mb-4">
-                        {formatPrice(item.price)}
+                        {formatPrice(item.productId.discountPrice || item.productId.price)}
                       </p>
 
                       <div className="space-y-2">
@@ -120,7 +131,7 @@ export default function WishlistPage() {
                           className="w-full"
                           asChild
                         >
-                          <Link href={`/products/${item.slug}`}>
+                          <Link href={`/products/${item.productId.slug}`}>
                             View Details
                           </Link>
                         </Button>

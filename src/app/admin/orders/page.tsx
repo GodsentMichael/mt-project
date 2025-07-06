@@ -10,7 +10,7 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Eye, Search } from "lucide-react"
-import { useToast } from "@/hooks/use-toast"
+import { toast } from "sonner"
 
 interface Order {
   _id: string
@@ -29,7 +29,7 @@ interface Order {
     quantity: number
     price: number
   }>
-  totalAmount: number
+  total: number
   status: 'PENDING' | 'PROCESSING' | 'SHIPPED' | 'DELIVERED' | 'CANCELLED'
   shippingAddress: {
     street: string
@@ -45,7 +45,6 @@ interface Order {
 export default function AdminOrdersPage() {
   const { data: session, status } = useSession()
   const router = useRouter()
-  const { toast } = useToast()
   const [orders, setOrders] = useState<Order[]>([])
   const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState("")
@@ -81,11 +80,7 @@ export default function AdminOrdersPage() {
       setOrders(data.orders)
       setTotalPages(data.pagination.totalPages)
     } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to load orders",
-        variant: "destructive",
-      })
+      toast.error("Failed to load orders")
     } finally {
       setLoading(false)
     }
@@ -105,18 +100,11 @@ export default function AdminOrdersPage() {
         throw new Error('Failed to update order status')
       }
 
-      toast({
-        title: "Success",
-        description: "Order status updated successfully",
-      })
+      toast.success("Order status updated successfully")
 
       fetchOrders()
     } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to update order status",
-        variant: "destructive",
-      })
+      toast.error("Failed to update order status")
     }
   }
 
@@ -209,9 +197,11 @@ export default function AdminOrdersPage() {
                               <div className="text-sm text-gray-500">{order.userId.email}</div>
                             </td>
                             <td className="py-4">
-                              <div className="font-medium">${order.totalAmount.toFixed(2)}</div>
+                              <div className="font-medium">
+                                ₦{(order.total || 0).toLocaleString()}
+                              </div>
                             </td>
-                            <td className="py-4">
+                            <td className="py-4 px-4">
                               <select
                                 value={order.status}
                                 onChange={(e) => updateOrderStatus(order._id, e.target.value)}

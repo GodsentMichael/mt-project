@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Pagination } from "@/components/ui/pagination"
 
 interface Order {
   _id: string
@@ -22,8 +23,19 @@ interface Order {
   createdAt: string
 }
 
-async function fetchOrders(): Promise<Order[]> {
-  const response = await fetch('/api/admin/orders')
+interface OrdersResponse {
+  orders?: Order[]
+  pagination?: {
+    currentPage: number
+    totalPages: number
+    totalCount: number
+    hasNext: boolean
+    hasPrev: boolean
+  }
+}
+
+async function fetchOrders(page: number = 1, limit: number = 10): Promise<OrdersResponse> {
+  const response = await fetch(`/api/admin/orders?page=${page}&limit=${limit}`)
   if (!response.ok) {
     throw new Error('Failed to fetch orders')
   }
@@ -50,13 +62,31 @@ function getStatusColor(status: string) {
 export function OrdersTable() {
   const [orders, setOrders] = useState<Order[]>([])
   const [loading, setLoading] = useState(true)
+  const [currentPage, setCurrentPage] = useState(1)
+  const [totalPages, setTotalPages] = useState(1)
+  const [totalCount, setTotalCount] = useState(0)
+
+  const loadOrders = async (page: number) => {
+    setLoading(true)
+    try {
+      const data = await fetchOrders(page, 10)
+      setOrders(data.orders || [])
+      setTotalPages(data.pagination?.totalPages || 1)
+      setTotalCount(data.pagination?.totalCount || 0)
+    } catch (error) {
+      console.error('Error fetching orders:', error)
+    } finally {
+      setLoading(false)
+    }
+  }
 
   useEffect(() => {
-    fetchOrders()
-      .then(setOrders)
-      .catch(console.error)
-      .finally(() => setLoading(false))
-  }, [])
+    loadOrders(currentPage)
+  }, [currentPage])
+
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page)
+  }
 
   if (loading) {
     return (
@@ -74,7 +104,14 @@ export function OrdersTable() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Recent Orders</CardTitle>
+        <CardTitle>
+          Recent Orders
+          {totalCount > 0 && (
+            <span className="text-sm font-normal text-muted-foreground ml-2">
+              ({totalCount} total)
+            </span>
+          )}
+        </CardTitle>
       </CardHeader>
       <CardContent>
         <Table>
@@ -90,52 +127,71 @@ export function OrdersTable() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {orders.map((order) => {
-              return (
-                <TableRow key={order._id}>
-                  <TableCell className="font-medium">{order.orderNumber}</TableCell>
-                  <TableCell>
-                    <div>
-                      <p className="font-medium">{order.userId?.name}</p>
-                      <p className="text-sm text-gray-500">{order.userId?.email}</p>
-                    </div>
-                  </TableCell>
-                  <TableCell>{new Date(order.createdAt).toLocaleDateString()}</TableCell>
-                  <TableCell>${order.total.toFixed(2)}</TableCell>
-                  <TableCell>
-                    <Select defaultValue={order.status}>
-                      <SelectTrigger className="w-32">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="PENDING">Pending</SelectItem>
-                        <SelectItem value="PROCESSING">Processing</SelectItem>
-                        <SelectItem value="SHIPPED">Shipped</SelectItem>
-                        <SelectItem value="DELIVERED">Delivered</SelectItem>
-                        <SelectItem value="CANCELLED">Cancelled</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </TableCell>
-                  <TableCell>
-                    <Badge className={getStatusColor(order.paymentStatus)}>{order.paymentStatus}</Badge>
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex items-center space-x-2">
-                      <Button variant="ghost" size="sm" asChild>
-                        <Link href={`/admin/orders/${order._id}`}>
-                          <Eye className="w-4 h-4" />
-                        </Link>
-                      </Button>
-                      <Button variant="ghost" size="sm">
-                        <Package className="w-4 h-4" />
-                      </Button>
-                    </div>
-                  </TableCell>
-                </TableRow>
-              );
-            })}
+            {orders.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={7} className="text-center py-8">
+                  No orders found.
+                </TableCell>
+              </TableRow>
+            ) : (
+              orders.map((order) => {
+                return (
+                  <TableRow key={order._id}>
+                    <TableCell className="font-medium">{order.orderNumber}</TableCell>
+                    <TableCell>
+                      <div>
+                        <p className="font-medium">{order.userId?.name}</p>
+                        <p className="text-sm text-gray-500">{order.userId?.email}</p>
+                      </div>
+                    </TableCell>
+                    <TableCell>{new Date(order.createdAt).toLocaleDateString()}</TableCell>
+                    <TableCell>${order.total.toFixed(2)}</TableCell>
+                    <TableCell>
+                      <Select defaultValue={order.status}>
+                        <SelectTrigger className="w-32">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="PENDING">Pending</SelectItem>
+                          <SelectItem value="PROCESSING">Processing</SelectItem>
+                          <SelectItem value="SHIPPED">Shipped</SelectItem>
+                          <SelectItem value="DELIVERED">Delivered</SelectItem>
+                          <SelectItem value="CANCELLED">Cancelled</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </TableCell>
+                    <TableCell>
+                      <Badge className={getStatusColor(order.paymentStatus)}>{order.paymentStatus}</Badge>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center space-x-2">
+                        <Button variant="ghost" size="sm" asChild>
+                          <Link href={`/admin/orders/${order._id}`}>
+                            <Eye className="w-4 h-4" />
+                          </Link>
+                        </Button>
+                        <Button variant="ghost" size="sm">
+                          <Package className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                );
+              })
+            )}
           </TableBody>
         </Table>
+
+        {/* Pagination */}
+        {totalPages > 1 && (
+          <div className="mt-6">
+            <Pagination
+              currentPage={currentPage}
+              totalPages={totalPages}
+              onPageChange={handlePageChange}
+            />
+          </div>
+        )}
       </CardContent>
     </Card>
   )

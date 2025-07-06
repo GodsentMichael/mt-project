@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Pagination } from "@/components/ui/pagination"
 
 interface Product {
   _id: string
@@ -25,6 +26,17 @@ interface Product {
   createdAt: string
 }
 
+interface ProductsResponse {
+  products: Product[]
+  pagination: {
+    currentPage: number
+    totalPages: number
+    totalCount: number
+    hasNext: boolean
+    hasPrev: boolean
+  }
+}
+
 interface ProductsTableProps {
   searchTerm: string
 }
@@ -33,10 +45,17 @@ export function ProductsTable({ searchTerm }: ProductsTableProps) {
   const [products, setProducts] = useState<Product[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [currentPage, setCurrentPage] = useState(1)
+  const [totalPages, setTotalPages] = useState(1)
+  const [totalCount, setTotalCount] = useState(0)
+
+  useEffect(() => {
+    setCurrentPage(1) // Reset to first page when search term changes
+  }, [searchTerm])
 
   useEffect(() => {
     fetchProducts()
-  }, [searchTerm])
+  }, [searchTerm, currentPage])
 
   const fetchProducts = async () => {
     setLoading(true)
@@ -44,8 +63,8 @@ export function ProductsTable({ searchTerm }: ProductsTableProps) {
     
     try {
       const params = new URLSearchParams({
-        page: '1',
-        limit: '50'
+        page: currentPage.toString(),
+        limit: '10'
       })
       
       if (searchTerm) {
@@ -58,8 +77,10 @@ export function ProductsTable({ searchTerm }: ProductsTableProps) {
         throw new Error('Failed to fetch products')
       }
       
-      const data = await response.json()
+      const data: ProductsResponse = await response.json()
       setProducts(data.products)
+      setTotalPages(data.pagination.totalPages)
+      setTotalCount(data.pagination.totalCount)
     } catch (err) {
       setError('Failed to load products')
       console.error('Error fetching products:', err)
@@ -102,7 +123,14 @@ export function ProductsTable({ searchTerm }: ProductsTableProps) {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>All Products</CardTitle>
+        <CardTitle>
+          All Products
+          {totalCount > 0 && (
+            <span className="text-sm font-normal text-muted-foreground ml-2">
+              ({totalCount} total)
+            </span>
+          )}
+        </CardTitle>
       </CardHeader>
       <CardContent>
     <Table>
@@ -172,6 +200,17 @@ export function ProductsTable({ searchTerm }: ProductsTableProps) {
         )}
       </TableBody>
     </Table>
+
+        {/* Pagination */}
+        {totalPages > 1 && (
+          <div className="mt-6">
+            <Pagination
+              currentPage={currentPage}
+              totalPages={totalPages}
+              onPageChange={setCurrentPage}
+            />
+          </div>
+        )}
       </CardContent>
     </Card>
   )
