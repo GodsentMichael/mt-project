@@ -6,7 +6,7 @@ import Wishlist from "@/lib/models/Wishlist"
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { productId: string } }
+  context: { params: Promise<{ productId: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions)
@@ -15,7 +15,7 @@ export async function DELETE(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
-    const { productId } = params
+    const { productId } = await context.params
 
     if (!productId) {
       return NextResponse.json({ error: "Product ID is required" }, { status: 400 })

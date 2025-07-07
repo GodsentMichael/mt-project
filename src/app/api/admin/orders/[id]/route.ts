@@ -6,7 +6,7 @@ import Order from "@/lib/models/Order"
 
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions)
@@ -23,8 +23,9 @@ export async function PATCH(
       return NextResponse.json({ error: "Status is required" }, { status: 400 })
     }
 
+    const { id } = await context.params
     const order = await Order.findByIdAndUpdate(
-      params.id,
+      id,
       { status, updatedAt: new Date() },
       { new: true }
     ).populate('userId', 'name email')

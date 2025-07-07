@@ -9,7 +9,7 @@ import Order from "@/lib/models/Order"
 // GET /api/products/[slug]/reviews - Get reviews for a product
 export async function GET(
   request: NextRequest,
-  { params }: { params: { slug: string } }
+  context: { params: Promise<{ slug: string }> }
 ) {
   try {
     await connectDB()
@@ -20,7 +20,8 @@ export async function GET(
     const skip = (page - 1) * limit
 
     // Find product by slug
-    const product = await Product.findOne({ slug: params.slug })
+    const { slug } = await context.params
+    const product = await Product.findOne({ slug })
     if (!product) {
       return NextResponse.json({ error: "Product not found" }, { status: 404 })
     }
@@ -78,7 +79,7 @@ export async function GET(
 // POST /api/products/[slug]/reviews - Add a review for a product
 export async function POST(
   request: NextRequest,
-  { params }: { params: { slug: string } }
+  context: { params: Promise<{ slug: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions)
@@ -120,7 +121,8 @@ export async function POST(
     await connectDB()
 
     // Find product by slug
-    const product = await Product.findOne({ slug: params.slug })
+    const { slug } = await context.params
+    const product = await Product.findOne({ slug })
     if (!product) {
       return NextResponse.json({ error: "Product not found" }, { status: 404 })
     }

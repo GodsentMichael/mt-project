@@ -6,7 +6,7 @@ import Review from "@/lib/models/Review"
 
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions)
@@ -23,8 +23,9 @@ export async function PATCH(
       return NextResponse.json({ error: "Status is required" }, { status: 400 })
     }
 
+    const { id } = await context.params
     const review = await Review.findByIdAndUpdate(
-      params.id,
+      id,
       { status, updatedAt: new Date() },
       { new: true }
     )
@@ -44,7 +45,7 @@ export async function PATCH(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions)
@@ -55,7 +56,8 @@ export async function DELETE(
 
     await connectDB()
 
-    const review = await Review.findByIdAndDelete(params.id)
+    const { id } = await context.params
+    const review = await Review.findByIdAndDelete(id)
 
     if (!review) {
       return NextResponse.json({ error: "Review not found" }, { status: 404 })

@@ -7,7 +7,7 @@ import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { useToast } from "@/hooks/use-toast"
+import { toast } from "sonner"
 import { useSettings } from "@/contexts/settings-context"
 import { Footer } from "@/components/layout/footer"
 import { Eye, EyeOff, Mail, Lock, User, AlertCircle } from "lucide-react"
@@ -22,7 +22,6 @@ export default function SignUp() {
     confirmPassword: "",
   })
   const router = useRouter()
-  const { toast } = useToast()
   const { settings, loading: settingsLoading } = useSettings()
 
   // Check if registration is disabled
@@ -67,11 +66,7 @@ export default function SignUp() {
     setIsLoading(true)
 
     if (formData.password !== formData.confirmPassword) {
-      toast({
-        title: "Password mismatch",
-        description: "Passwords do not match",
-        variant: "destructive",
-      })
+      toast.error("Passwords do not match")
       setIsLoading(false)
       return
     }
@@ -92,11 +87,7 @@ export default function SignUp() {
       const data = await response.json()
 
       if (response.ok) {
-        toast({
-          title: "Account created!",
-          description: "Your account has been created successfully",
-          variant: "success",
-        })
+        toast.success("Your account has been created successfully")
 
         // Auto sign in after registration
         const result = await signIn("credentials", {
@@ -112,18 +103,10 @@ export default function SignUp() {
           router.push("/auth/signin")
         }
       } else {
-        toast({
-          title: "Registration failed",
-          description: data.error || "Something went wrong",
-          variant: "destructive",
-        })
+        toast.error(data.error || "Something went wrong")
       }
     } catch (error) {
-      toast({
-        title: "Error",
-        description: "Something went wrong. Please try again.",
-        variant: "destructive",
-      })
+      toast.error("Something went wrong. Please try again.")
     } finally {
       setIsLoading(false)
     }
@@ -134,11 +117,7 @@ export default function SignUp() {
     try {
       await signIn("google", { callbackUrl: "/" })
     } catch (error) {
-      toast({
-        title: "Error",
-        description: "Google sign in failed",
-        variant: "destructive",
-      })
+      toast.error("Google sign in failed")
       setIsLoading(false)
     }
   }

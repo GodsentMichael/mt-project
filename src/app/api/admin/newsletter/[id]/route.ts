@@ -6,7 +6,7 @@ import Newsletter from "@/lib/models/Newsletter"
 
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions)
@@ -28,8 +28,9 @@ export async function PATCH(
       updateData.unsubscribedAt = new Date()
     }
 
+    const { id } = await context.params
     const subscriber = await Newsletter.findByIdAndUpdate(
-      params.id,
+      id,
       updateData,
       { new: true }
     )
@@ -47,7 +48,7 @@ export async function PATCH(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions)
@@ -58,7 +59,8 @@ export async function DELETE(
 
     await connectDB()
 
-    const subscriber = await Newsletter.findByIdAndDelete(params.id)
+    const { id } = await context.params
+    const subscriber = await Newsletter.findByIdAndDelete(id)
 
     if (!subscriber) {
       return NextResponse.json({ error: "Subscriber not found" }, { status: 404 })

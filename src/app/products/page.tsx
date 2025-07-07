@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, Suspense } from "react"
 import { useSearchParams, useRouter } from "next/navigation"
 import { Header } from "@/components/layout/header"
 import { Footer } from "@/components/layout/footer"
@@ -15,7 +15,7 @@ import { Slider } from "@/components/ui/slider"
 import { Star, Heart, ShoppingCart, Search, Filter, Loader2 } from "lucide-react"
 import { useCartStore } from "@/lib/store/cart-store"
 import { useWishlistStore } from "@/lib/store/wishlist-store-new"
-import { useToast } from "@/hooks/use-toast"
+import { toast } from "sonner"
 import { SimplePagination } from "@/components/ui/pagination"
 
 interface Product {
@@ -60,6 +60,14 @@ interface ProductsResponse {
 }
 
 export default function ProductsPage() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <ProductsPageContent />
+    </Suspense>
+  )
+}
+
+function ProductsPageContent() {
   const [data, setData] = useState<ProductsResponse | null>(null)
   const [loading, setLoading] = useState(true)
   const [priceRange, setPriceRange] = useState([0, 50000])
@@ -69,8 +77,7 @@ export default function ProductsPage() {
   const searchParams = useSearchParams()
   const router = useRouter()
   const { addItem: addToCart } = useCartStore()
-  const { addItem: addToWishlist, isInWishlist } = useWishlistStore()
-  const { toast } = useToast()
+  const { addItem: addToWishlist, removeItem: removeFromWishlist, isInWishlist } = useWishlistStore()
 
   const category = searchParams.get('category') || 'all'
   const page = searchParams.get('page') || '1'
@@ -105,11 +112,7 @@ export default function ProductsPage() {
         throw new Error(result.error)
       }
     } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to load products",
-        variant: "destructive",
-      })
+      toast.error("Failed to load products")
     } finally {
       setLoading(false)
     }
@@ -160,20 +163,13 @@ export default function ProductsPage() {
       image: product.images[0],
       slug: product.slug,
     })
-    toast({
-      title: "Added to cart",
-      description: `${product.name} has been added to your cart`,
-      variant: "success",
-    })
+    toast.success(`${product.name} has been added to your cart`)
   }
 
   const handleToggleWishlist = (product: Product) => {
     if (isInWishlist(product._id)) {
-      // Remove from wishlist (you'd need to implement removeItem in wishlist store)
-      toast({
-        title: "Removed from wishlist",
-        description: `${product.name} has been removed from your wishlist`,
-      })
+      removeFromWishlist(product._id)
+      toast.success(`${product.name} has been removed from your wishlist`)
     } else {
       addToWishlist({
         id: product._id,
@@ -182,11 +178,7 @@ export default function ProductsPage() {
         image: product.images[0],
         slug: product.slug,
       })
-      toast({
-        title: "Added to wishlist",
-        description: `${product.name} has been added to your wishlist`,
-        variant: "success",
-      })
+      toast.success(`${product.name} has been added to your wishlist`)
     }
   }
 

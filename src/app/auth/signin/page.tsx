@@ -7,7 +7,7 @@ import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { useToast } from "@/hooks/use-toast"
+import { toast } from "sonner"
 import { Footer } from "@/components/layout/footer"
 import { Eye, EyeOff, Mail, Lock } from "lucide-react"
 
@@ -19,7 +19,6 @@ export default function SignIn() {
     password: "",
   })
   const router = useRouter()
-  const { toast } = useToast()
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -33,26 +32,14 @@ export default function SignIn() {
       })
 
       if (result?.error) {
-        toast({
-          title: "Sign in failed",
-          description: "Invalid email or password",
-          variant: "destructive",
-        })
+        toast.error("Invalid email or password")
       } else {
-        toast({
-          title: "Welcome back!",
-          description: "You have been signed in successfully",
-          variant: "success",
-        })
+        toast.success("Welcome back! You have been signed in successfully")
         router.push("/")
         router.refresh()
       }
     } catch (error) {
-      toast({
-        title: "Error",
-        description: "Something went wrong. Please try again.",
-        variant: "destructive",
-      })
+      toast.error("Something went wrong. Please try again.")
     } finally {
       setIsLoading(false)
     }
@@ -63,11 +50,7 @@ export default function SignIn() {
     try {
       await signIn("google", { callbackUrl: "/" })
     } catch (error) {
-      toast({
-        title: "Error",
-        description: "Google sign in failed",
-        variant: "destructive",
-      })
+      toast.error("Google sign in failed")
       setIsLoading(false)
     }
   }

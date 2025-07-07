@@ -6,11 +6,11 @@ import Order from "@/lib/models/Order"
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  context: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions)
-    const { id } = await params
+    const { id } = await context.params
     
     if (!session?.user) {
       return NextResponse.json(
