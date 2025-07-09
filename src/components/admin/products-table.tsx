@@ -9,6 +9,8 @@ import { Badge } from "@/components/ui/badge"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Pagination } from "@/components/ui/pagination"
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { toast } from "sonner"
 
 interface Product {
   _id: string
@@ -48,6 +50,11 @@ export function ProductsTable({ searchTerm }: ProductsTableProps) {
   const [currentPage, setCurrentPage] = useState(1)
   const [totalPages, setTotalPages] = useState(1)
   const [totalCount, setTotalCount] = useState(0)
+  const [deleteModal, setDeleteModal] = useState<{ open: boolean; product: Product | null }>({
+    open: false,
+    product: null
+  })
+  const [deleting, setDeleting] = useState(false)
 
   useEffect(() => {
     setCurrentPage(1) // Reset to first page when search term changes
@@ -190,7 +197,11 @@ export function ProductsTable({ searchTerm }: ProductsTableProps) {
                       <Edit className="w-4 h-4" />
                     </Link>
                   </Button>
-                  <Button variant="ghost" size="sm">
+                  <Button 
+                    variant="ghost" 
+                    size="sm"
+                    onClick={() => setDeleteModal({ open: true, product })}
+                  >
                     <Trash2 className="w-4 h-4" />
                   </Button>
                 </div>
@@ -212,6 +223,65 @@ export function ProductsTable({ searchTerm }: ProductsTableProps) {
           </div>
         )}
       </CardContent>
+
+      {/* Delete Confirmation Modal */}
+      <Dialog open={deleteModal.open} onOpenChange={(open) => setDeleteModal({ open, product: null })}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Delete Product</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to delete "{deleteModal.product?.name}"? This action cannot be undone.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setDeleteModal({ open: false, product: null })}
+              disabled={deleting}
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={handleDelete}
+              disabled={deleting}
+            >
+              {deleting ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  Deleting...
+                </>
+              ) : (
+                'Delete'
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </Card>
   )
+
+  async function handleDelete() {
+    if (!deleteModal.product) return
+
+    setDeleting(true)
+    try {
+      const response = await fetch(`/api/admin/products/${deleteModal.product._id}`, {
+        method: 'DELETE',
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to delete product')
+      }
+
+      toast.success('Product deleted successfully')
+      setDeleteModal({ open: false, product: null })
+      fetchProducts() // Refresh the list
+    } catch (error) {
+      console.error('Error deleting product:', error)
+      toast.error('Failed to delete product')
+    } finally {
+      setDeleting(false)
+    }
+  }
 }

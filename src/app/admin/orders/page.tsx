@@ -9,8 +9,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Eye, Search } from "lucide-react"
+import { Eye, Search, Trash2 } from "lucide-react"
 import { toast } from "sonner"
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 
 interface Order {
   _id: string
@@ -19,13 +20,13 @@ interface Order {
     _id: string
     name: string
     email: string
-  }
+  } | null
   items: Array<{
     productId: {
       name: string
       price: number
       images: string[]
-    }
+    } | null
     quantity: number
     price: number
   }>
@@ -50,6 +51,15 @@ export default function AdminOrdersPage() {
   const [searchTerm, setSearchTerm] = useState("")
   const [currentPage, setCurrentPage] = useState(1)
   const [totalPages, setTotalPages] = useState(1)
+  const [viewModal, setViewModal] = useState<{ open: boolean; order: Order | null }>({
+    open: false,
+    order: null
+  })
+  const [deleteModal, setDeleteModal] = useState<{ open: boolean; order: Order | null }>({
+    open: false,
+    order: null
+  })
+  const [deleting, setDeleting] = useState(false)
 
   useEffect(() => {
     if (status === "loading") return
@@ -101,11 +111,41 @@ export default function AdminOrdersPage() {
       }
 
       toast.success("Order status updated successfully")
-
       fetchOrders()
     } catch (error) {
       toast.error("Failed to update order status")
     }
+  }
+
+  const handleDeleteOrder = async () => {
+    if (!deleteModal.order) return
+
+    try {
+      setDeleting(true)
+      const response = await fetch(`/api/admin/orders/${deleteModal.order._id}`, {
+        method: 'DELETE'
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to delete order')
+      }
+
+      toast.success("Order deleted successfully")
+      setOrders(orders.filter(o => o._id !== deleteModal.order!._id))
+      setDeleteModal({ open: false, order: null })
+    } catch (error) {
+      toast.error("Failed to delete order")
+    } finally {
+      setDeleting(false)
+    }
+  }
+
+  const openViewModal = (order: Order) => {
+    setViewModal({ open: true, order })
+  }
+
+  const openDeleteModal = (order: Order) => {
+    setDeleteModal({ open: true, order })
   }
 
   const getStatusColor = (status: string) => {
@@ -117,6 +157,13 @@ export default function AdminOrdersPage() {
       case 'CANCELLED': return 'bg-red-100 text-red-800'
       default: return 'bg-gray-100 text-gray-800'
     }
+  }
+
+  const formatPrice = (price: number) => {
+    return new Intl.NumberFormat('en-NG', {
+      style: 'currency',
+      currency: 'NGN'
+    }).format(price)
   }
 
   if (status === "loading") {
@@ -193,8 +240,12 @@ export default function AdminOrdersPage() {
                               </div>
                             </td>
                             <td className="py-4">
-                              <div className="font-medium">{order.userId.name}</div>
-                              <div className="text-sm text-gray-500">{order.userId.email}</div>
+                              <div className="font-medium">
+                                {order.userId?.name || 'Deleted User'}
+                              </div>
+                              <div className="text-sm text-gray-500">
+                                {order.userId?.email || 'No email available'}
+                              </div>
                             </td>
                             <td className="py-4">
                               <div className="font-medium">
@@ -220,14 +271,25 @@ export default function AdminOrdersPage() {
                               </div>
                             </td>
                             <td className="py-4">
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => router.push(`/admin/orders/${order._id}`)}
-                              >
-                                <Eye className="w-4 h-4 mr-1" />
-                                View
-                              </Button>
+                              <div className="flex space-x-2">
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => openViewModal(order)}
+                                >
+                                  <Eye className="w-4 h-4 mr-1" />
+                                  View
+                                </Button>
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => openDeleteModal(order)}
+                                  className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                                >
+                                  <Trash2 className="w-4 h-4 mr-1" />
+                                  Delete
+                                </Button>
+                              </div>
                             </td>
                           </tr>
                         ))}
@@ -253,6 +315,110 @@ export default function AdminOrdersPage() {
                 )}
               </CardContent>
             </Card>
+
+            {/* View Order Modal */}
+            {viewModal.order && (
+              <Dialog open={viewModal.open} onOpenChange={(open) => setViewModal({ open, order: viewModal.order })}>
+                <DialogContent className="max-w-2xl p-6">
+                  <DialogHeader>
+                    <DialogTitle>Order Details</DialogTitle>
+                    <DialogDescription>
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <strong>Order Number:</strong> {viewModal.order.orderNumber}
+                        </div>
+                        <div>
+                          <strong>Status:</strong> 
+                          <Badge 
+                            className="ml-2" 
+                            variant={
+                              viewModal.order.status === 'DELIVERED' ? 'default' :
+                              viewModal.order.status === 'CANCELLED' ? 'destructive' :
+                              'secondary'
+                            }
+                          >
+                            {viewModal.order.status}
+                          </Badge>
+                        </div>
+                        <div>
+                          <strong>Customer Name:</strong> {viewModal.order.userId?.name || 'Deleted User'}
+                        </div>
+                        <div>
+                          <strong>Customer Email:</strong> {viewModal.order.userId?.email || 'No email available'}
+                        </div>
+                        <div>
+                          <strong>Total Amount:</strong> ₦{viewModal.order.total.toLocaleString()}
+                        </div>
+                        <div>
+                          <strong>Order Date:</strong> {new Date(viewModal.order.createdAt).toLocaleDateString()}
+                        </div>
+                      </div>
+                    </DialogDescription>
+                  </DialogHeader>
+                  <div className="mt-4">
+                    <h3 className="text-lg font-semibold">Items</h3>
+                    <div className="mt-2">
+                      {viewModal.order.items.map((item, index) => (
+                        <div key={index} className="flex justify-between py-2 border-b">
+                          <div className="flex-1">
+                            <div className="font-medium">
+                              {item.productId?.name || 'Deleted Product'}
+                            </div>
+                            <div className="text-sm text-gray-500">
+                              Quantity: {item.quantity}
+                            </div>
+                          </div>
+                          <div className="ml-4">
+                            <div className="font-medium">
+                              ₦{item.price.toLocaleString()}
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                  <DialogFooter>
+                    <Button
+                      variant="outline"
+                      onClick={() => setViewModal({ open: false, order: null })}
+                    >
+                      Close
+                    </Button>
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
+            )}
+
+            {/* Delete Order Confirmation Modal */}
+            {deleteModal.order && (
+              <Dialog open={deleteModal.open} onOpenChange={(open) => setDeleteModal({ open, order: deleteModal.order })}>
+                <DialogContent className="max-w-sm p-6">
+                  <DialogHeader>
+                    <DialogTitle>Confirm Delete Order</DialogTitle>
+                  </DialogHeader>
+                  <DialogDescription>
+                    Are you sure you want to delete order{" "}
+                    <strong>{deleteModal.order.orderNumber}</strong>? This action cannot be undone.
+                  </DialogDescription>
+                  <div className="flex justify-end gap-2 mt-4">
+                    <Button
+                      variant="outline"
+                      onClick={() => setDeleteModal({ open: false, order: null })}
+                      disabled={deleting}
+                    >
+                      Cancel
+                    </Button>
+                    <Button
+                      variant="destructive"
+                      onClick={handleDeleteOrder}
+                      disabled={deleting}
+                    >
+                      {deleting ? "Deleting..." : "Delete Order"}
+                    </Button>
+                  </div>
+                </DialogContent>
+              </Dialog>
+            )}
           </div>
         </main>
       </div>

@@ -30,6 +30,11 @@ export default function AdminNewsletterPage() {
   const [currentPage, setCurrentPage] = useState(1)
   const [totalPages, setTotalPages] = useState(1)
   const [statusFilter, setStatusFilter] = useState<string>('all')
+  const [deleteModal, setDeleteModal] = useState<{ open: boolean; subscriber: NewsletterSubscriber | null }>({
+    open: false,
+    subscriber: null
+  })
+  const [deleting, setDeleting] = useState(false)
   const [stats, setStats] = useState({
     total: 0,
     active: 0,
@@ -110,11 +115,12 @@ export default function AdminNewsletterPage() {
     }
   }
 
-  const deleteSubscriber = async (subscriberId: string) => {
-    if (!confirm('Are you sure you want to delete this subscriber?')) return
+  const handleDeleteSubscriber = async () => {
+    if (!deleteModal.subscriber) return
 
     try {
-      const response = await fetch(`/api/admin/newsletter/${subscriberId}`, {
+      setDeleting(true)
+      const response = await fetch(`/api/admin/newsletter/${deleteModal.subscriber._id}`, {
         method: 'DELETE',
       })
 
@@ -123,12 +129,18 @@ export default function AdminNewsletterPage() {
       }
 
       toast.success("Subscriber deleted successfully")
-
-      fetchSubscribers()
+      setSubscribers(subscribers.filter(s => s._id !== deleteModal.subscriber!._id))
+      setDeleteModal({ open: false, subscriber: null })
       fetchStats()
     } catch (error) {
       toast.error("Failed to delete subscriber")
+    } finally {
+      setDeleting(false)
     }
+  }
+
+  const openDeleteModal = (subscriber: NewsletterSubscriber) => {
+    setDeleteModal({ open: true, subscriber })
   }
 
   const exportSubscribers = async () => {
@@ -323,9 +335,10 @@ export default function AdminNewsletterPage() {
                                   </Button>
                                 )}
                                 <Button
-                                  variant="destructive"
+                                  variant="outline"
                                   size="sm"
-                                  onClick={() => deleteSubscriber(subscriber._id)}
+                                  onClick={() => openDeleteModal(subscriber)}
+                                  className="text-red-600 hover:text-red-700 hover:bg-red-50"
                                 >
                                   <Trash2 className="w-4 h-4" />
                                 </Button>
@@ -350,6 +363,35 @@ export default function AdminNewsletterPage() {
                 )}
               </CardContent>
             </Card>
+
+            {/* Delete Subscriber Confirmation Dialog */}
+            <Dialog open={deleteModal.open} onOpenChange={(open) => !open && setDeleteModal({ open, subscriber: null })}>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Delete Subscriber</DialogTitle>
+                  <DialogDescription>
+                    Are you sure you want to delete the subscriber <strong>{deleteModal.subscriber?.email}</strong>? 
+                    This action cannot be undone.
+                  </DialogDescription>
+                </DialogHeader>
+                <DialogFooter>
+                  <Button 
+                    variant="outline" 
+                    onClick={() => setDeleteModal({ open: false, subscriber: null })}
+                    disabled={deleting}
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    variant="destructive"
+                    onClick={handleDeleteSubscriber}
+                    disabled={deleting}
+                  >
+                    {deleting ? "Deleting..." : "Delete Subscriber"}
+                  </Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
           </div>
         </main>
       </div>

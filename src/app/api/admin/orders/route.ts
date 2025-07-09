@@ -4,6 +4,7 @@ import { authOptions } from "@/lib/auth"
 import connectDB from "@/lib/db"
 import Order from "@/lib/models/Order"
 import Product from "@/lib/models/Product"
+import User from "@/lib/models/User"
 
 export async function GET(request: NextRequest) {
   try {
@@ -31,12 +32,22 @@ export async function GET(request: NextRequest) {
       ]
     }
 
+    // Ensure models are available before querying
     const orders = await Order.find(filter)
-      .populate('userId', 'name email')
-      .populate('items.productId', 'name price images')
+      .populate({
+        path: 'userId',
+        select: 'name email',
+        model: User
+      })
+      .populate({
+        path: 'items.productId',
+        select: 'name price images',
+        model: Product
+      })
       .sort({ createdAt: -1 })
       .skip(skip)
       .limit(limit)
+      .lean()
       .lean()
 
     const totalCount = await Order.countDocuments(filter)

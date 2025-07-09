@@ -75,6 +75,13 @@ export default function OrderDetailsPage() {
     }
   }, [orderId, isSuccess, clearCart])
 
+  useEffect(() => {
+    // Clear cart after successful order
+    if (order && order.paymentStatus === "PAID") {
+      clearCart()
+    }
+  }, [order, clearCart])
+
   const fetchOrder = async () => {
     try {
       const response = await fetch(`/api/orders/${orderId}`)
@@ -107,6 +114,29 @@ export default function OrderDetailsPage() {
       hour: '2-digit',
       minute: '2-digit',
     })
+  }
+
+  const downloadInvoice = async () => {
+    try {
+      const response = await fetch(`/api/orders/${params.id}/invoice`)
+      if (!response.ok) {
+        throw new Error('Failed to generate invoice')
+      }
+
+      const blob = await response.blob()
+      const url = window.URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = `invoice-${order?.orderNumber || params.id}.html`
+      document.body.appendChild(a)
+      a.click()
+      window.URL.revokeObjectURL(url)
+      document.body.removeChild(a)
+      
+      toast.success("Invoice downloaded successfully")
+    } catch (error) {
+      toast.error("Failed to download invoice")
+    }
   }
 
   if (loading) {
@@ -321,7 +351,7 @@ export default function OrderDetailsPage() {
                     <Link href="/products">Continue Shopping</Link>
                   </Button>
                   {order.paymentStatus === "PAID" && (
-                    <Button variant="outline" className="w-full">
+                    <Button variant="outline" className="w-full" onClick={downloadInvoice}>
                       Download Invoice
                     </Button>
                   )}

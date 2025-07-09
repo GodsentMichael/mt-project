@@ -11,7 +11,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
-import { Search, Mail, Calendar, Edit, Trash2 } from "lucide-react"
+import { Search, Mail, Calendar, Trash2 } from "lucide-react"
 import { toast } from "sonner"
 import { Pagination } from "@/components/ui/pagination"
 
@@ -227,14 +227,6 @@ export default function AdminCustomersPage() {
                                 >
                                   <Mail className="w-4 h-4 mr-1" />
                                   Email
-                                </Button>
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  onClick={() => router.push(`/admin/customers/${customer._id}/edit`)}
-                                >
-                                  <Edit className="w-4 h-4 mr-1" />
-                                  Edit
                                 </Button>
                                 {customer.role !== 'ADMIN' && (
                                   <Button
