@@ -11,8 +11,9 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Search, Star, Eye, Trash2 } from "lucide-react"
-import { useToast } from "@/hooks/use-toast"
+import { toast } from "sonner"
 import { Pagination } from "@/components/ui/pagination"
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 
 interface Review {
   _id: string
@@ -37,13 +38,17 @@ interface Review {
 export default function AdminReviewsPage() {
   const { data: session, status } = useSession()
   const router = useRouter()
-  const { toast } = useToast()
   const [reviews, setReviews] = useState<Review[]>([])
   const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState("")
   const [currentPage, setCurrentPage] = useState(1)
   const [totalPages, setTotalPages] = useState(1)
   const [statusFilter, setStatusFilter] = useState<string>('all')
+  const [deleteModal, setDeleteModal] = useState<{ open: boolean; review: Review | null }>({
+    open: false,
+    review: null
+  })
+  const [deleting, setDeleting] = useState(false)
 
   useEffect(() => {
     if (status === "loading") return
@@ -75,11 +80,7 @@ export default function AdminReviewsPage() {
       setReviews(data.reviews)
       setTotalPages(data.pagination.totalPages)
     } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to load reviews",
-        variant: "destructive",
-      })
+      toast.error("Failed to load reviews")
     } finally {
       setLoading(false)
     }
@@ -99,26 +100,20 @@ export default function AdminReviewsPage() {
         throw new Error('Failed to update review status')
       }
 
-      toast({
-        title: "Success",
-        description: "Review status updated successfully",
-      })
+      toast.success("Review status updated successfully")
 
       fetchReviews()
     } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to update review status",
-        variant: "destructive",
-      })
+      toast.error("Failed to update review status")
     }
   }
 
-  const deleteReview = async (reviewId: string) => {
-    if (!confirm('Are you sure you want to delete this review?')) return
+  const handleDeleteReview = async () => {
+    if (!deleteModal.review) return
 
     try {
-      const response = await fetch(`/api/admin/reviews/${reviewId}`, {
+      setDeleting(true)
+      const response = await fetch(`/api/admin/reviews/${deleteModal.review._id}`, {
         method: 'DELETE',
       })
 
@@ -126,19 +121,18 @@ export default function AdminReviewsPage() {
         throw new Error('Failed to delete review')
       }
 
-      toast({
-        title: "Success",
-        description: "Review deleted successfully",
-      })
-
-      fetchReviews()
+      toast.success("Review deleted successfully")
+      setReviews(reviews.filter(r => r._id !== deleteModal.review!._id))
+      setDeleteModal({ open: false, review: null })
     } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to delete review",
-        variant: "destructive",
-      })
+      toast.error("Failed to delete review")
+    } finally {
+      setDeleting(false)
     }
+  }
+
+  const openDeleteModal = (review: Review) => {
+    setDeleteModal({ open: true, review })
   }
 
   const getStatusColor = (status: string) => {
@@ -298,8 +292,9 @@ export default function AdminReviewsPage() {
                             )}
                             <Button
                               size="sm"
-                              variant="destructive"
-                              onClick={() => deleteReview(review._id)}
+                              variant="outline"
+                              onClick={() => openDeleteModal(review)}
+                              className="text-red-600 hover:text-red-700 hover:bg-red-50"
                             >
                               <Trash2 className="w-4 h-4" />
                             </Button>
@@ -322,6 +317,35 @@ export default function AdminReviewsPage() {
                 )}
               </CardContent>
             </Card>
+
+            {/* Delete Review Confirmation Dialog */}
+            <Dialog open={deleteModal.open} onOpenChange={(open) => !open && setDeleteModal({ open, review: null })}>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Delete Review</DialogTitle>
+                  <DialogDescription>
+                    Are you sure you want to delete this review by <strong>{deleteModal.review?.userId.name}</strong>? 
+                    This action cannot be undone.
+                  </DialogDescription>
+                </DialogHeader>
+                <DialogFooter>
+                  <Button 
+                    variant="outline" 
+                    onClick={() => setDeleteModal({ open: false, review: null })}
+                    disabled={deleting}
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    variant="destructive"
+                    onClick={handleDeleteReview}
+                    disabled={deleting}
+                  >
+                    {deleting ? "Deleting..." : "Delete Review"}
+                  </Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
           </div>
         </main>
       </div>

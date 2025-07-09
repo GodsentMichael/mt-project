@@ -9,8 +9,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Search, Mail, Download, Trash2, Calendar } from "lucide-react"
-import { useToast } from "@/hooks/use-toast"
+import { toast } from "sonner"
 import { Pagination } from "@/components/ui/pagination"
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 
 interface NewsletterSubscriber {
   _id: string
@@ -23,7 +24,6 @@ interface NewsletterSubscriber {
 export default function AdminNewsletterPage() {
   const { data: session, status } = useSession()
   const router = useRouter()
-  const { toast } = useToast()
   const [subscribers, setSubscribers] = useState<NewsletterSubscriber[]>([])
   const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState("")
@@ -67,11 +67,7 @@ export default function AdminNewsletterPage() {
       setSubscribers(data.subscribers)
       setTotalPages(data.pagination.totalPages)
     } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to load newsletter subscribers",
-        variant: "destructive",
-      })
+      toast.error("Failed to load newsletter subscribers")
     } finally {
       setLoading(false)
     }
@@ -105,19 +101,12 @@ export default function AdminNewsletterPage() {
         throw new Error('Failed to update subscriber status')
       }
 
-      toast({
-        title: "Success",
-        description: "Subscriber status updated successfully",
-      })
+      toast.success("Subscriber status updated successfully")
 
       fetchSubscribers()
       fetchStats()
     } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to update subscriber status",
-        variant: "destructive",
-      })
+      toast.error("Failed to update subscriber status")
     }
   }
 
@@ -133,19 +122,12 @@ export default function AdminNewsletterPage() {
         throw new Error('Failed to delete subscriber')
       }
 
-      toast({
-        title: "Success",
-        description: "Subscriber deleted successfully",
-      })
+      toast.success("Subscriber deleted successfully")
 
       fetchSubscribers()
       fetchStats()
     } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to delete subscriber",
-        variant: "destructive",
-      })
+      toast.error("Failed to delete subscriber")
     }
   }
 
@@ -166,16 +148,9 @@ export default function AdminNewsletterPage() {
       a.click()
       window.URL.revokeObjectURL(url)
 
-      toast({
-        title: "Success",
-        description: "Subscribers exported successfully",
-      })
+      toast.success("Subscribers exported successfully")
     } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to export subscribers",
-        variant: "destructive",
-      })
+      toast.error("Failed to export subscribers")
     }
   }
 

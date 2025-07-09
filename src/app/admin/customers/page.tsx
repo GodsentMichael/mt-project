@@ -10,8 +10,9 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Search, Mail, Calendar } from "lucide-react"
-import { useToast } from "@/hooks/use-toast"
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { Search, Mail, Calendar, Edit, Trash2 } from "lucide-react"
+import { toast } from "sonner"
 import { Pagination } from "@/components/ui/pagination"
 
 interface Customer {
@@ -29,12 +30,16 @@ interface Customer {
 export default function AdminCustomersPage() {
   const { data: session, status } = useSession()
   const router = useRouter()
-  const { toast } = useToast()
   const [customers, setCustomers] = useState<Customer[]>([])
   const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState("")
   const [currentPage, setCurrentPage] = useState(1)
   const [totalPages, setTotalPages] = useState(1)
+  const [deleteModal, setDeleteModal] = useState<{ open: boolean; customer: Customer | null }>({
+    open: false,
+    customer: null
+  })
+  const [deleting, setDeleting] = useState(false)
 
   useEffect(() => {
     if (status === "loading") return
@@ -65,11 +70,7 @@ export default function AdminCustomersPage() {
       setCustomers(data.customers)
       setTotalPages(data.pagination.totalPages)
     } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to load customers",
-        variant: "destructive",
-      })
+      toast.error("Failed to load customers")
     } finally {
       setLoading(false)
     }
@@ -82,6 +83,33 @@ export default function AdminCustomersPage() {
       .join('')
       .toUpperCase()
       .slice(0, 2)
+  }
+
+  const handleDeleteCustomer = async () => {
+    if (!deleteModal.customer) return
+
+    try {
+      setDeleting(true)
+      const response = await fetch(`/api/admin/customers/${deleteModal.customer._id}`, {
+        method: 'DELETE'
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to delete customer')
+      }
+
+      toast.success("Customer deleted successfully")
+      setCustomers(customers.filter(c => c._id !== deleteModal.customer!._id))
+      setDeleteModal({ open: false, customer: null })
+    } catch (error) {
+      toast.error("Failed to delete customer")
+    } finally {
+      setDeleting(false)
+    }
+  }
+
+  const openDeleteModal = (customer: Customer) => {
+    setDeleteModal({ open: true, customer })
   }
 
   if (status === "loading") {
@@ -175,7 +203,7 @@ export default function AdminCustomersPage() {
                               <div className="font-medium">{customer.orderCount || 0}</div>
                             </td>
                             <td className="py-4">
-                              <div className="font-medium">${(customer.totalSpent || 0).toFixed(2)}</div>
+                              <div className="font-medium">₦{(customer.totalSpent || 0).toFixed(2)}</div>
                             </td>
                             <td className="py-4">
                               <div className="text-sm">
@@ -200,6 +228,25 @@ export default function AdminCustomersPage() {
                                   <Mail className="w-4 h-4 mr-1" />
                                   Email
                                 </Button>
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => router.push(`/admin/customers/${customer._id}/edit`)}
+                                >
+                                  <Edit className="w-4 h-4 mr-1" />
+                                  Edit
+                                </Button>
+                                {customer.role !== 'ADMIN' && (
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => openDeleteModal(customer)}
+                                    className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                                  >
+                                    <Trash2 className="w-4 h-4 mr-1" />
+                                    Delete
+                                  </Button>
+                                )}
                               </div>
                             </td>
                           </tr>
@@ -221,6 +268,35 @@ export default function AdminCustomersPage() {
                 )}
               </CardContent>
             </Card>
+
+            {/* Delete Customer Confirmation Dialog */}
+            <Dialog open={deleteModal.open} onOpenChange={(open) => !open && setDeleteModal({ open, customer: null })}>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Delete Customer</DialogTitle>
+                  <DialogDescription>
+                    Are you sure you want to delete <strong>{deleteModal.customer?.name}</strong>? 
+                    This action cannot be undone and will permanently remove their account and order history.
+                  </DialogDescription>
+                </DialogHeader>
+                <DialogFooter>
+                  <Button 
+                    variant="outline" 
+                    onClick={() => setDeleteModal({ open: false, customer: null })}
+                    disabled={deleting}
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    variant="destructive"
+                    onClick={handleDeleteCustomer}
+                    disabled={deleting}
+                  >
+                    {deleting ? "Deleting..." : "Delete Customer"}
+                  </Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
           </div>
         </main>
       </div>
