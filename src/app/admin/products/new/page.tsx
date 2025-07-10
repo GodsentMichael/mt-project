@@ -10,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { AdminHeader } from "@/components/admin/admin-header"
 import { AdminSidebar } from "@/components/admin/admin-sidebar"
 import { ImageUpload } from "@/components/ui/image-upload"
-import { useToast } from "@/hooks/use-toast"
+import { toast } from "sonner"
 
 interface Category {
   _id: string
@@ -33,7 +33,6 @@ interface ProductFormData {
 export default function NewProductPage() {
     const { data: session, status } = useSession()
     const router = useRouter()
-    const { toast } = useToast()
     const [loading, setLoading] = useState(false)
     const [categoriesLoading, setCategoriesLoading] = useState(true)
     const [categories, setCategories] = useState<Category[]>([])
@@ -73,18 +72,14 @@ export default function NewProductPage() {
                 const data = await response.json()
                 setCategories(data)
             } catch (error) {
-                toast({
-                    title: "Error",
-                    description: "Failed to load categories",
-                    variant: "destructive",
-                })
+                toast.error("Failed to load categories")
             } finally {
                 setCategoriesLoading(false)
             }
         }
 
         fetchCategories()
-    }, [session, status, router, toast])
+    }, [session, status, router])
 
     const handleInputChange = (field: keyof ProductFormData, value: any) => {
         // Ensure categoryId is always a string
@@ -114,18 +109,10 @@ export default function NewProductPage() {
                 const errorData = await response.json()
                 throw new Error(errorData.error || 'Failed to create product')
             }
-            toast({
-                title: "Success",
-                description: "Product created successfully",
-                variant: "success",
-            })
+            toast.success("Product created successfully")
             router.push('/admin/products')
         } catch (error) {
-            toast({
-                title: "Error",
-                description: error instanceof Error ? error.message : "Failed to create product",
-                variant: "destructive",
-            })
+            toast.error(error instanceof Error ? error.message : "Failed to create product")
         } finally {
             setLoading(false)
         }
