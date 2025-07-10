@@ -52,7 +52,7 @@ interface ProductFormData {
   status: string
 }
 
-export default function EditProductPage({ params }: { params: { id: string } }) {
+export default function EditProductPage({ params }: { params: Promise<{ id: string }> }) {
   const { data: session, status } = useSession()
   const router = useRouter()
   const [loading, setLoading] = useState(false)
@@ -60,6 +60,7 @@ export default function EditProductPage({ params }: { params: { id: string } }) 
   const [categoriesLoading, setCategoriesLoading] = useState(true)
   const [categories, setCategories] = useState<Category[]>([])
   const [product, setProduct] = useState<Product | null>(null)
+  const [productId, setProductId] = useState<string>("")
   const [formData, setFormData] = useState<ProductFormData>({
     name: "",
     description: "",
@@ -73,10 +74,19 @@ export default function EditProductPage({ params }: { params: { id: string } }) 
     status: "ACTIVE",
   })
 
+  // Resolve params
+  useEffect(() => {
+    const resolveParams = async () => {
+      const resolvedParams = await params
+      setProductId(resolvedParams.id)
+    }
+    resolveParams()
+  }, [params])
+
   // Check authentication
   useEffect(() => {
     if (status === "loading") return
-    
+
     if (!session || session.user.role !== "ADMIN") {
       router.push("/auth/signin")
       return
@@ -107,8 +117,10 @@ export default function EditProductPage({ params }: { params: { id: string } }) 
   // Fetch product data
   useEffect(() => {
     const fetchProduct = async () => {
+      if (!productId) return
+
       try {
-        const response = await fetch(`/api/admin/products/${params.id}`)
+        const response = await fetch(`/api/admin/products/${productId}`)
         if (response.ok) {
           const productData = await response.json()
           setProduct(productData)
@@ -136,14 +148,12 @@ export default function EditProductPage({ params }: { params: { id: string } }) 
       }
     }
 
-    if (params.id) {
-      fetchProduct()
-    }
-  }, [params.id, router])
+    fetchProduct()
+  }, [productId, router])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    
+
     if (!formData.name || !formData.price || !formData.categoryId) {
       toast.error("Please fill in all required fields")
       return
@@ -152,7 +162,7 @@ export default function EditProductPage({ params }: { params: { id: string } }) 
     setLoading(true)
 
     try {
-      const response = await fetch(`/api/admin/products/${params.id}`, {
+      const response = await fetch(`/api/admin/products/${productId}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -175,9 +185,9 @@ export default function EditProductPage({ params }: { params: { id: string } }) 
   }
 
   const handleInputChange = (field: keyof ProductFormData, value: any) => {
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      [field]: value
+      [field]: value,
     }))
   }
 
@@ -302,8 +312,8 @@ export default function EditProductPage({ params }: { params: { id: string } }) 
                 <CardContent className="space-y-4">
                   <div>
                     <Label htmlFor="category">Category *</Label>
-                    <Select 
-                      value={formData.categoryId} 
+                    <Select
+                      value={formData.categoryId}
                       onValueChange={(value) => handleInputChange("categoryId", value)}
                     >
                       <SelectTrigger>
@@ -311,9 +321,13 @@ export default function EditProductPage({ params }: { params: { id: string } }) 
                       </SelectTrigger>
                       <SelectContent>
                         {categoriesLoading ? (
-                          <SelectItem value="loading" disabled>Loading categories...</SelectItem>
+                          <SelectItem value="loading" disabled>
+                            Loading categories...
+                          </SelectItem>
                         ) : categories.length === 0 ? (
-                          <SelectItem value="no-categories" disabled>No categories available</SelectItem>
+                          <SelectItem value="no-categories" disabled>
+                            No categories available
+                          </SelectItem>
                         ) : (
                           categories.map((category) => (
                             <SelectItem key={category._id} value={category._id}>
@@ -327,8 +341,8 @@ export default function EditProductPage({ params }: { params: { id: string } }) 
 
                   <div>
                     <Label htmlFor="status">Status</Label>
-                    <Select 
-                      value={formData.status} 
+                    <Select
+                      value={formData.status}
                       onValueChange={(value) => handleInputChange("status", value)}
                     >
                       <SelectTrigger>
