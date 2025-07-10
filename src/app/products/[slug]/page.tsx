@@ -379,36 +379,36 @@ export default function ProductDetailsPage() {
             </div>
 
             {/* Features */}
-            <div className="flex flex-col md:grid md:grid-cols-3 gap-4 pt-6 border-t">
-                <div className="flex items-center space-x-3 flex-1">
-                    <div className="w-10 h-10 bg-brand-100 rounded-full flex items-center justify-center">
-                        <Truck className="w-5 h-5 text-brand-600" />
-                    </div>
-                    <div>
-                        <p className="font-medium text-gray-900">Free Shipping</p>
-                        <p className="text-sm text-gray-600">On orders over ₦25,000</p>
-                    </div>
+            <div className="flex flex-row gap-2 pt-6 border-t md:grid md:grid-cols-3 md:gap-4">
+              <div className="flex items-center space-x-2 flex-1 p-2">
+                <div className="w-8 h-8 md:w-10 md:h-10 bg-brand-100 rounded-full flex items-center justify-center">
+                  <Truck className="w-4 h-4 md:w-5 md:h-5 text-brand-600" />
                 </div>
-                
-                <div className="flex items-center space-x-3 flex-1">
-                    <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
-                        <Shield className="w-5 h-5 text-green-600" />
-                    </div>
-                    <div>
-                        <p className="font-medium text-gray-900">Secure Payment</p>
-                        <p className="text-sm text-gray-600">SSL Encrypted</p>
-                    </div>
+                <div>
+                  <p className="font-medium text-xs md:text-base text-gray-900">Free Shipping</p>
+                  <p className="text-[11px] md:text-sm text-gray-600">On orders over ₦25,000</p>
                 </div>
-                
-                <div className="flex items-center space-x-3 flex-1">
-                    <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
-                        <RotateCcw className="w-5 h-5 text-blue-600" />
-                    </div>
-                    <div>
-                        <p className="font-medium text-gray-900">Easy Returns</p>
-                        <p className="text-sm text-gray-600">30-day policy</p>
-                    </div>
+              </div>
+              
+              <div className="flex items-center space-x-2 flex-1 p-2">
+                <div className="w-8 h-8 md:w-10 md:h-10 bg-green-100 rounded-full flex items-center justify-center">
+                  <Shield className="w-4 h-4 md:w-5 md:h-5 text-green-600" />
                 </div>
+                <div>
+                  <p className="font-medium text-xs md:text-base text-gray-900">Secure Payment</p>
+                  <p className="text-[11px] md:text-sm text-gray-600">SSL Encrypted</p>
+                </div>
+              </div>
+              
+              <div className="flex items-center space-x-2 flex-1 p-2">
+                <div className="w-8 h-8 md:w-10 md:h-10 bg-blue-100 rounded-full flex items-center justify-center">
+                  <RotateCcw className="w-4 h-4 md:w-5 md:h-5 text-blue-600" />
+                </div>
+                <div>
+                  <p className="font-medium text-xs md:text-base text-gray-900">Easy Returns</p>
+                  <p className="text-[11px] md:text-sm text-gray-600">30-day policy</p>
+                </div>
+              </div>
             </div>
           </div>
         </div>

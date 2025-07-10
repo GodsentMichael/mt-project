@@ -8,13 +8,39 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { useEffect, useState } from "react"
 
 export function AdminHeader() {
   const { data: session } = useSession()
+  const [notifications, setNotifications] = useState({
+    orders: 0,
+    products: 0,
+    customers: 0,
+    newsletters: 0,
+    reviews: 0,
+  })
+
+  useEffect(() => {
+    // Fetch notifications count from API
+    const fetchNotifications = async () => {
+      try {
+        const response = await fetch("/api/admin/notifications")
+        if (response.ok) {
+          const data = await response.json()
+          setNotifications(data)
+        }
+      } catch (error) {
+        console.error("Failed to fetch notifications", error)
+      }
+    }
+
+    fetchNotifications()
+  }, [])
 
   return (
     <header className="bg-white border-b border-gray-200 px-6 py-4 lg:ml-64">
@@ -27,10 +53,37 @@ export function AdminHeader() {
         </div>
 
         <div className="flex items-center space-x-4">
-          <Button variant="ghost" size="sm" className="relative">
-            <Bell className="w-5 h-5" />
-            <span className="absolute -top-1 -right-1 w-2 h-2 bg-red-500 rounded-full"></span>
-          </Button>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="sm" className="relative">
+                <Bell className="w-5 h-5" />
+                {Object.values(notifications).reduce((a, b) => a + b, 0) > 0 && (
+                  <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 text-white text-xs flex items-center justify-center rounded-full">
+                    {Object.values(notifications).reduce((a, b) => a + b, 0)}
+                  </span>
+                )}
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent className="w-56" align="end">
+              <DropdownMenuLabel>Notifications</DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={() => (window.location.href = "/admin/orders")}>
+                Orders ({notifications.orders})
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => (window.location.href = "/admin/products")}>
+                Products ({notifications.products})
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => (window.location.href = "/admin/customers")}>
+                Customers ({notifications.customers})
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => (window.location.href = "/admin/newsletters")}>
+                Newsletters ({notifications.newsletters})
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => (window.location.href = "/admin/reviews")}>
+                Reviews ({notifications.reviews})
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
 
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
