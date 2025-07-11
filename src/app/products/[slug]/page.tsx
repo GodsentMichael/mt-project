@@ -369,12 +369,12 @@ export default function ProductDetailsPage() {
                   <Heart className={`w-5 h-5 ${isInWishlist(product._id) ? 'fill-red-500 text-red-500' : ''}`} />
                 </Button>
                 
-                <Button
+                {/* <Button
                   variant="outline"
                   className="px-4 py-3 rounded-xl border-gray-300 hover:border-brand-500 transition-all duration-200 hover:scale-105"
                 >
                   <Share2 className="w-5 h-5" />
-                </Button>
+                </Button> */}
               </div>
             </div>
 

@@ -4,6 +4,7 @@ import { authOptions } from "@/lib/auth"
 import connectDB from "@/lib/db"
 import Product from "@/lib/models/Product"
 import Category from "@/lib/models/Category"
+import Notification from "@/lib/models/Notification"
 
 // GET /api/admin/products - Get all products for admin
 export async function GET(request: NextRequest) {
@@ -102,6 +103,15 @@ export async function POST(request: NextRequest) {
     })
 
     await product.save()
+
+    // Create a notification for the new product
+    const notification = new Notification({
+      type: "product",
+      message: `New product added: ${data.name}`,
+      link: `/admin/products`,
+    })
+
+    await notification.save()
 
     // Populate category info for response
     await product.populate('categoryId', 'name slug')

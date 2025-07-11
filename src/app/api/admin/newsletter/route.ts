@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
 import connectDB from "@/lib/db"
 import Newsletter from "@/lib/models/Newsletter"
+import Notification from "@/lib/models/Notification"
 
 export async function GET(request: NextRequest) {
   try {
@@ -79,6 +80,15 @@ export async function POST(request: NextRequest) {
     })
 
     await subscriber.save()
+
+    // Create a notification for the new newsletter subscription
+    const notification = new Notification({
+      type: "newsletter",
+      message: `New newsletter subscription: ${email}`,
+      link: `/admin/newsletter`,
+    })
+
+    await notification.save()
 
     return NextResponse.json({ message: "Successfully subscribed to newsletter" }, { status: 201 })
   } catch (error) {

@@ -24,22 +24,34 @@ export function AdminHeader() {
     newsletters: 0,
     reviews: 0,
   })
+  type Notification = { 
+    link: string; 
+    message: string;
+    createdAt: string;
+    type: string;
+  }
+  const [notificationList, setNotificationList] = useState<Notification[]>([])
 
   useEffect(() => {
-    // Fetch notifications count from API
-    const fetchNotifications = async () => {
+    // Fetch notifications list from API
+    const fetchNotificationsList = async () => {
       try {
         const response = await fetch("/api/admin/notifications")
         if (response.ok) {
           const data = await response.json()
-          setNotifications(data)
+          setNotificationList(data)
         }
       } catch (error) {
-        console.error("Failed to fetch notifications", error)
+        console.error("Failed to fetch notifications list", error)
       }
     }
 
-    fetchNotifications()
+    fetchNotificationsList()
+
+    // Set up polling for real-time updates every 30 seconds
+    const interval = setInterval(fetchNotificationsList, 30000)
+
+    return () => clearInterval(interval)
   }, [])
 
   return (
@@ -57,31 +69,51 @@ export function AdminHeader() {
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" size="sm" className="relative">
                 <Bell className="w-5 h-5" />
-                {Object.values(notifications).reduce((a, b) => a + b, 0) > 0 && (
+                {notificationList.length > 0 && (
                   <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 text-white text-xs flex items-center justify-center rounded-full">
-                    {Object.values(notifications).reduce((a, b) => a + b, 0)}
+                    {notificationList.length > 99 ? "99+" : notificationList.length}
                   </span>
                 )}
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent className="w-56" align="end">
-              <DropdownMenuLabel>Notifications</DropdownMenuLabel>
+            <DropdownMenuContent className="w-80" align="end">
+              <DropdownMenuLabel className="text-center">
+                Recent Notifications ({notificationList.length})
+              </DropdownMenuLabel>
               <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={() => (window.location.href = "/admin/orders")}>
-                Orders ({notifications.orders})
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => (window.location.href = "/admin/products")}>
-                Products ({notifications.products})
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => (window.location.href = "/admin/customers")}>
-                Customers ({notifications.customers})
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => (window.location.href = "/admin/newsletters")}>
-                Newsletters ({notifications.newsletters})
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => (window.location.href = "/admin/reviews")}>
-                Reviews ({notifications.reviews})
-              </DropdownMenuItem>
+              <div className="max-h-96 overflow-y-auto">
+                {notificationList.length > 0 ? (
+                  notificationList.slice(0, 10).map((notification, index) => (
+                    <DropdownMenuItem key={index} className="p-3 hover:bg-gray-50">
+                      <div className="flex flex-col w-full">
+                        <a 
+                          href={notification.link} 
+                          className="text-sm font-medium text-gray-900 hover:text-blue-600 line-clamp-2"
+                        >
+                          {notification.message}
+                        </a>
+                        <span className="text-xs text-gray-500 mt-1">
+                          {new Date(notification.createdAt).toLocaleString()}
+                        </span>
+                      </div>
+                    </DropdownMenuItem>
+                  ))
+                ) : (
+                  <DropdownMenuItem className="p-3 text-center text-gray-500">
+                    No new notifications
+                  </DropdownMenuItem>
+                )}
+              </div>
+              {notificationList.length > 10 && (
+                <>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem className="p-3 text-center">
+                    <a href="/admin/notifications" className="text-blue-600 hover:text-blue-800 text-sm font-medium">
+                      View all notifications
+                    </a>
+                  </DropdownMenuItem>
+                </>
+              )}
             </DropdownMenuContent>
           </DropdownMenu>
 

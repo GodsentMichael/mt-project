@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
 import connectDB from "@/lib/db"
 import Review from "@/lib/models/Review"
+import Notification from "@/lib/models/Notification"
 
 export async function GET(request: NextRequest) {
   try {
@@ -91,5 +92,42 @@ export async function PATCH(request: NextRequest) {
   } catch (error) {
     console.error("Error updating review:", error)
     return NextResponse.json({ error: "Internal server error" }, { status: 500 })
+  }
+}
+
+export async function POST(request: NextRequest) {
+  try {
+    const session = await getServerSession(authOptions)
+
+    if (!session || session.user.role !== "ADMIN") {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+    }
+
+    await connectDB()
+
+    const { productId, userId, comment, rating } = await request.json()
+
+    const review = new Review({
+      productId,
+      userId,
+      comment,
+      rating,
+    })
+
+    await review.save()
+
+    // Create a notification for the new review
+    const notification = new Notification({
+      type: "review",
+      message: `New review added for product ID: ${productId}`,
+      link: `/admin/reviews`,
+    })
+
+    await notification.save()
+
+    return NextResponse.json({ message: "Review created successfully" }, { status: 201 })
+  } catch (error) {
+    console.error("Error creating review:", error)
+    return NextResponse.json({ error: "Failed to create review" }, { status: 500 })
   }
 }

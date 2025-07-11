@@ -5,6 +5,7 @@ import connectDB from "@/lib/db"
 import Review from "@/lib/models/Review"
 import Product from "@/lib/models/Product"
 import Order from "@/lib/models/Order"
+import Notification from "@/lib/models/Notification"
 
 // GET /api/products/[slug]/reviews - Get reviews for a product
 export async function GET(
@@ -167,6 +168,19 @@ export async function POST(
       averageRating: avgRating,
       reviewCount: allReviews.length
     })
+
+    // Create a notification for the new review
+    try {
+      const notification = new Notification({
+        type: "review",
+        message: `New review added for product: ${product.name}`,
+        link: `/admin/reviews`,
+      })
+      await notification.save()
+    } catch (notificationError) {
+      console.error("Failed to create notification:", notificationError)
+      // Don't fail the review creation if notification fails
+    }
 
     // Populate the created review
     const populatedReview = await Review.findById(review._id)

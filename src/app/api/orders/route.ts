@@ -4,6 +4,7 @@ import { authOptions } from "@/lib/auth"
 import connectDB from "@/lib/db"
 import Order from "@/lib/models/Order"
 import Product from "@/lib/models/Product"
+import Notification from "@/lib/models/Notification"
 import { generateOrderNumber } from "@/lib/utils/order-utils"
 
 interface OrderItem {
@@ -184,6 +185,16 @@ export async function POST(request: NextRequest) {
         { $inc: { stock: -item.quantity } }
       )
     }
+
+    // Update notifications
+    const notification = {
+      type: "order",
+      message: `New order placed: ${order.orderNumber}`,
+      link: `/admin/orders/${order._id}`,
+      createdAt: new Date(),
+    }
+
+    await Notification.create(notification)
 
     return NextResponse.json({
       order: {

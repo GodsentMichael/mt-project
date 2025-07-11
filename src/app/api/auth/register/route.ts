@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import bcrypt from "bcryptjs"
 import connectDB from "@/lib/db"
 import User from "@/lib/models/User"
+import { createNotification } from "@/lib/utils/notification-utils"
 
 export async function POST(request: NextRequest) {
   try {
@@ -42,10 +43,23 @@ export async function POST(request: NextRequest) {
       password: hashedPassword,
     })
 
+    // Create a notification for the new user registration
+    try {
+      await createNotification({
+        type: "customer",
+        message: `New user registered: ${name}`,
+        link: `/admin/customers`,
+      })
+    } catch (notificationError) {
+      console.error("Failed to create notification:", notificationError)
+      // Don't fail the registration if notification creation fails
+    }
+
     return NextResponse.json(
-      { message: "User created successfully", userId: user._id },
+      { message: "User created successfully" },
       { status: 201 }
     )
+
   } catch (error) {
     console.error("Registration error:", error)
     return NextResponse.json(
