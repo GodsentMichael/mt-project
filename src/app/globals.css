@@ -101,4 +101,45 @@
     -webkit-box-orient: vertical;
     -webkit-line-clamp: 3;
   }
+
+  /* Better responsive container for laptop screens */
+  .responsive-container {
+    width: 100%;
+    margin-left: auto;
+    margin-right: auto;
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+  
+  @media (min-width: 640px) {
+    .responsive-container {
+      max-width: 640px;
+      padding-left: 1.5rem;
+      padding-right: 1.5rem;
+    }
+  }
+  
+  @media (min-width: 768px) {
+    .responsive-container {
+      max-width: 768px;
+    }
+  }
+  
+  @media (min-width: 1024px) {
+    .responsive-container {
+      max-width: 1200px; /* Optimized for laptop screens */
+    }
+  }
+  
+  @media (min-width: 1280px) {
+    .responsive-container {
+      max-width: 1280px;
+    }
+  }
+  
+  @media (min-width: 1536px) {
+    .responsive-container {
+      max-width: 1400px;
+    }
+  }
 }

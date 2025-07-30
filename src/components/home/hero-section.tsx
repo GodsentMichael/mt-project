@@ -6,7 +6,7 @@ import { ArrowRight, Star, Shield, Truck } from "lucide-react"
 export function HeroSection() {
   return (
     <section className="relative overflow-hidden bg-gradient-to-br from-brand-50 via-white to-brand-100">
-      <div className="container mx-auto px-4 py-16 lg:py-24">
+      <div className="max-w-7xl mx-auto px-6 lg:px-8 py-16 lg:py-24">
         <div className="grid lg:grid-cols-2 gap-12 items-center">
           {/* Content */}
           <div className="space-y-8 animate-fade-in">
@@ -34,7 +34,7 @@ export function HeroSection() {
                 </Link>
               </Button>
               <Button size="lg" variant="outline" asChild>
-                <Link href="/categories">Browse Categories</Link>
+                <Link href="/products">Browse Categories</Link>
               </Button>
             </div>
 

@@ -21,14 +21,15 @@ export const metadata: Metadata = {
   description: "Discover the latest trends in fashion at McTaylor. Premium quality clothing, accessories, and more.",
   icons: {
     icon: [
-      { url: "/mctaylor-logo.png", type: "image/png", sizes: "32x32" },
-      { url: "/mctaylor-logo.png", type: "image/png", sizes: "16x16" },
-      { url: "/mctaylor-logo.png", type: "image/png", sizes: "48x48" },
+      { url: "/mctaylor-logo.png", sizes: "32x32" },
+      { url: "/mctaylor-logo.png", sizes: "16x16" },
+      { url: "/mctaylor-logo.png", sizes: "48x48" },
     ],
     shortcut: "/mctaylor-logo.png",
-    apple: [
-      { url: "/mctaylor-logo.png", sizes: "180x180", type: "image/png" },
-    ],
+    apple: "/mctaylor-logo.png",
+  },
+  other: {
+    "msapplication-TileImage": "/mctaylor-logo.png",
   },
 };
 

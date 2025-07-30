@@ -45,12 +45,12 @@ export function Header() {
         isScrolled ? "bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60" : "bg-background"
       }`}
     >
-      <div className="container mx-auto px-4">
+      <div className="max-w-7xl mx-auto px-6 lg:px-8">
         {/* Main header */}
         <div className="flex items-center justify-between py-4">
           {/* Logo */}
           <Link href="/" className="flex items-center space-x-2">
-            <img src="/logo-removebg.png" alt="ShopEase Logo" className="w-full h-16 object-contain" />
+            <img src="/logo-removebg.png" alt="McTaylor Logo" className="w-full h-20 object-contain" />
           </Link>
 
           {/* Desktop Navigation */}

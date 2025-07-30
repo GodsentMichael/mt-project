@@ -40,7 +40,7 @@ export function NewsletterSection() {
 
   return (
     <section className="py-16 bg-gradient-to-r from-brand-600 to-brand-700">
-      <div className="container mx-auto px-4">
+      <div className="max-w-7xl mx-auto px-6 lg:px-8">
         <div className="max-w-2xl mx-auto text-center">
           <Mail className="w-12 h-12 text-white mx-auto mb-6" />
           <h2 className="text-3xl lg:text-4xl font-heading font-bold text-white mb-4">Stay in the Loop</h2>
