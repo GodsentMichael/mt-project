@@ -26,16 +26,18 @@ export function HeroSection() {
               </p>
             </div>
 
-            <div className="flex flex-col sm:flex-row gap-4">
-              <Button size="lg" className="bg-brand-600 hover:bg-brand-700" asChild>
-                <Link href="/products">
+            <div className="flex flex-col sm:flex-row gap-4 relative z-10">
+              <Link href="/products" className="inline-block cursor-pointer">
+                <Button size="lg" className="bg-brand-600 hover:bg-brand-700 cursor-pointer w-full">
                   Shop Now
                   <ArrowRight className="ml-2 w-4 h-4" />
-                </Link>
-              </Button>
-              <Button size="lg" variant="outline" asChild>
-                <Link href="/products">Browse Categories</Link>
-              </Button>
+                </Button>
+              </Link>
+              <Link href="/products" className="inline-block cursor-pointer">
+                <Button size="lg" variant="outline" className="cursor-pointer w-full">
+                  Browse Categories
+                </Button>
+              </Link>
             </div>
 
             {/* Features */}
@@ -83,14 +85,14 @@ export function HeroSection() {
               />
             </div>
             {/* Decorative elements */}
-            <div className="absolute -top-4 -right-4 w-72 h-72 bg-brand-200 rounded-full opacity-20 blur-3xl"></div>
-            <div className="absolute -bottom-8 -left-8 w-64 h-64 bg-brand-300 rounded-full opacity-20 blur-3xl"></div>
+            <div className="absolute -top-4 -right-4 w-72 h-72 bg-brand-200 rounded-full opacity-20 blur-3xl pointer-events-none"></div>
+            <div className="absolute -bottom-8 -left-8 w-64 h-64 bg-brand-300 rounded-full opacity-20 blur-3xl pointer-events-none"></div>
           </div>
         </div>
       </div>
 
       {/* Background Pattern */}
-      <div className="absolute inset-0 bg-grid-pattern opacity-5"></div>
+      <div className="absolute inset-0 bg-grid-pattern opacity-5 pointer-events-none"></div>
     </section>
   )
 }

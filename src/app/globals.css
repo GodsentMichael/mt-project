@@ -67,6 +67,19 @@
   body {
     @apply bg-background text-foreground;
   }
+  
+  /* Ensure proper cursor for interactive elements */
+  button, [role="button"], .cursor-pointer {
+    cursor: pointer !important;
+  }
+  
+  a {
+    cursor: pointer !important;
+  }
+  
+  button[disabled], [disabled] {
+    cursor: not-allowed !important;
+  }
 }
 
 /* Toast progress animation */
@@ -141,5 +154,22 @@
     .responsive-container {
       max-width: 1400px;
     }
+  }
+  
+  /* Force cursor pointer for interactive elements */
+  button,
+  [role="button"],
+  .button,
+  button[type="button"],
+  button[type="submit"],
+  input[type="button"],
+  input[type="submit"],
+  a[href] {
+    cursor: pointer !important;
+  }
+  
+  /* Ensure links show pointer cursor */
+  a {
+    cursor: pointer !important;
   }
 }

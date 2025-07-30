@@ -241,11 +241,11 @@ export function FeaturedProducts() {
         )}
         
         <div className="text-center mt-12">
-          <Button variant="outline" size="lg" asChild>
-            <Link href="/products">
+          <Link href="/products" className="inline-block cursor-pointer">
+            <Button variant="outline" size="lg" className="cursor-pointer">
               View All Products
-            </Link>
-          </Button>
+            </Button>
+          </Link>
         </div>
       </div>
     </section>
