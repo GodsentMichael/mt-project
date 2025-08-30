@@ -1,12 +1,11 @@
 import { NextRequest, NextResponse } from "next/server"
-import { writeFile } from "fs/promises"
-import { join } from "path"
+import { uploadToCloudinary } from "@/lib/cloudinary"
 
 export async function POST(request: NextRequest) {
   try {
     const data = await request.formData()
     const file: File | null = data.get('file') as unknown as File
-    const folder = data.get('folder') as string || 'uploads'
+    const folder = data.get('folder') as string || 'products'
 
     if (!file) {
       return NextResponse.json({ error: "No file uploaded" }, { status: 400 })
@@ -18,37 +17,22 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Invalid file type" }, { status: 400 })
     }
 
-    // Validate file size (5MB max)
-    const maxSize = 5 * 1024 * 1024 // 5MB
+    // Validate file size (10MB max for Cloudinary)
+    const maxSize = 10 * 1024 * 1024 // 10MB
     if (file.size > maxSize) {
       return NextResponse.json({ error: "File too large" }, { status: 400 })
     }
 
-    const bytes = await file.arrayBuffer()
-    const buffer = Buffer.from(bytes)
+    // Upload to Cloudinary
+    const result = await uploadToCloudinary(file, folder)
 
-    // Generate unique filename
-    const timestamp = Date.now()
-    const originalName = file.name.replace(/[^a-zA-Z0-9.-]/g, '')
-    const filename = `${timestamp}-${originalName}`
-    
-    // Create upload path
-    const uploadDir = join(process.cwd(), 'public', 'uploads', folder)
-    const filePath = join(uploadDir, filename)
-
-    // Ensure directory exists
-    const fs = require('fs')
-    if (!fs.existsSync(uploadDir)) {
-      fs.mkdirSync(uploadDir, { recursive: true })
-    }
-
-    // Write file
-    await writeFile(filePath, buffer)
-
-    // Return public URL
-    const url = `/uploads/${folder}/${filename}`
-
-    return NextResponse.json({ url })
+    // Return Cloudinary URL
+    return NextResponse.json({ 
+      url: result.secure_url,
+      public_id: result.public_id,
+      width: result.width,
+      height: result.height
+    })
   } catch (error) {
     console.error("Error uploading file:", error)
     return NextResponse.json({ error: "Failed to upload file" }, { status: 500 })

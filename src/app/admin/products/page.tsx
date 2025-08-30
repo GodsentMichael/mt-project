@@ -47,7 +47,7 @@ export default function AdminProducts() {
       <AdminHeader />
       <div className="flex">
         <AdminSidebar />
-        <main className="flex-1 p-6">
+        <main className="flex-1 p-6 min-[1280px]:ml-64">
           <div className="max-w-7xl mx-auto">
             <div className="flex justify-between items-center mb-8">
               <div>

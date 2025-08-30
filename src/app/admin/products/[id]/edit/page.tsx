@@ -208,7 +208,7 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
       <AdminSidebar />
       <div className="flex-1">
         <AdminHeader />
-        <main className="p-6">
+        <main className="p-6 min-[1280px]:ml-64">
           <div className="max-w-4xl mx-auto">
             <div className="mb-6">
               <h1 className="text-2xl font-bold">Edit Product</h1>

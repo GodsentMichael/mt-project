@@ -208,7 +208,7 @@ function generateInvoiceHTML(order: any) {
                 <td class="text-right">₦${shipping.toLocaleString()}</td>
             </tr>
             <tr>
-                <td>Tax (7.5%):</td>
+                <td>VAT (7.5%):</td>
                 <td class="text-right">₦${tax.toLocaleString()}</td>
             </tr>
             <tr class="total-row">

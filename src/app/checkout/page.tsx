@@ -440,7 +440,7 @@ export default function CheckoutPage() {
                     <span>{shipping === 0 ? "Free" : formatPrice(shipping)}</span>
                   </div>
                   <div className="flex justify-between text-sm">
-                    <span>Tax (7.5%)</span>
+                    <span>VAT (7.5%)</span>
                     <span>{formatPrice(tax)}</span>
                   </div>
                   <Separator />

@@ -134,8 +134,6 @@ export function AdminHeader() {
                 <p className="text-xs text-muted-foreground">{session?.user?.email}</p>
               </div>
               <DropdownMenuSeparator />
-              <DropdownMenuItem>Profile Settings</DropdownMenuItem>
-              <DropdownMenuItem>Account Settings</DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem onClick={() => signOut()}>Sign Out</DropdownMenuItem>
             </DropdownMenuContent>

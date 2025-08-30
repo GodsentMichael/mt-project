@@ -315,7 +315,7 @@ export default function OrderDetailsPage() {
                     <span>{order.shipping === 0 ? "Free" : formatPrice(order.shipping)}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span>Tax</span>
+                    <span>VAT</span>
                     <span>{formatPrice(order.tax)}</span>
                   </div>
                   <Separator />

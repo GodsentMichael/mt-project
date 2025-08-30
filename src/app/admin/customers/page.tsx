@@ -129,7 +129,7 @@ export default function AdminCustomersPage() {
       <AdminHeader />
       <div className="flex">
         <AdminSidebar />
-        <main className="flex-1 p-6">
+        <main className="flex-1 p-6 min-[1280px]:ml-64">
           <div className="max-w-7xl mx-auto">
             <div className="mb-8">
               <h1 className="text-3xl font-bold text-gray-900">Customers</h1>

@@ -131,7 +131,7 @@ export default function AdminSettingsPage() {
       <AdminHeader />
       <div className="flex">
         <AdminSidebar />
-        <main className="flex-1 p-6">
+        <main className="flex-1 p-6 min-[1280px]:ml-64">
           <div className="max-w-4xl mx-auto">
             <div className="mb-8">
               <h1 className="text-3xl font-bold text-gray-900">Settings</h1>
@@ -239,11 +239,11 @@ export default function AdminSettingsPage() {
                 <TabsContent value="shipping">
                   <Card>
                     <CardHeader>
-                      <CardTitle>Shipping & Tax Settings</CardTitle>
+                      <CardTitle>Shipping & VAT Settings</CardTitle>
                     </CardHeader>
                     <CardContent className="space-y-4">
                       <div>
-                        <label className="text-sm font-medium">Tax Rate (%)</label>
+                        <label className="text-sm font-medium">VAT Rate (%)</label>
                         <Input
                           type="number"
                           step="0.01"
