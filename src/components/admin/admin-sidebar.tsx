@@ -24,8 +24,8 @@ export function AdminSidebar() {
 
   return (
     <>
-      {/* Mobile menu button */}
-      <div className="xl:hidden fixed top-4 left-4 z-50">
+      {/* Mobile menu button - shows on screens < 1280px */}
+      <div className="max-[1279px]:block hidden fixed top-4 left-4 z-50">
         <Button variant="outline" size="sm" onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}>
           {isMobileMenuOpen ? <X className="w-4 h-4" /> : <Menu className="w-4 h-4" />}
         </Button>
@@ -34,7 +34,7 @@ export function AdminSidebar() {
       {/* Sidebar */}
       <div
         className={cn(
-          "fixed inset-y-0 left-0 z-40 w-64 bg-white border-r border-gray-200 transform transition-transform duration-300 ease-in-out xl:translate-x-0",
+          "fixed inset-y-0 left-0 z-40 w-64 bg-white border-r border-gray-200 transform transition-transform duration-300 ease-in-out min-[1280px]:translate-x-0",
           isMobileMenuOpen ? "translate-x-0" : "-translate-x-full",
         )}
       >
@@ -87,7 +87,7 @@ export function AdminSidebar() {
       {/* Mobile overlay */}
       {isMobileMenuOpen && (
         <div
-          className="fixed inset-0 z-30 bg-black bg-opacity-50 xl:hidden"
+          className="fixed inset-0 z-30 bg-black bg-opacity-50 max-[1279px]:block hidden"
           onClick={() => setIsMobileMenuOpen(false)}
         />
       )}
