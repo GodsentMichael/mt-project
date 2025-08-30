@@ -32,13 +32,37 @@ interface Order {
   }>
   total: number
   status: 'PENDING' | 'PROCESSING' | 'SHIPPED' | 'DELIVERED' | 'CANCELLED'
+  paymentStatus?: string
   shippingAddress: {
-    street: string
+    firstName: string
+    lastName: string
+    company?: string
+    address1: string
+    address2?: string
     city: string
     state: string
-    zipCode: string
+    postalCode: string
     country: string
+    phone?: string
   }
+  billingAddress?: {
+    firstName: string
+    lastName: string
+    company?: string
+    address1: string
+    address2?: string
+    city: string
+    state: string
+    postalCode: string
+    country: string
+    phone?: string
+  }
+  subtotal?: number
+  tax?: number
+  shipping?: number
+  discount?: number
+  notes?: string
+  trackingNumber?: string
   createdAt: string
   updatedAt: string
 }
@@ -319,7 +343,7 @@ export default function AdminOrdersPage() {
             {/* View Order Modal */}
             {viewModal.order && (
               <Dialog open={viewModal.open} onOpenChange={(open) => setViewModal({ open, order: viewModal.order })}>
-                <DialogContent className="max-w-2xl p-6">
+                <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto p-6">
                   <DialogHeader>
                     <DialogTitle>Order Details</DialogTitle>
                     <DialogDescription>
@@ -352,30 +376,134 @@ export default function AdminOrdersPage() {
                         <div>
                           <strong>Order Date:</strong> {new Date(viewModal.order.createdAt).toLocaleDateString()}
                         </div>
+                        {viewModal.order.trackingNumber && (
+                          <div className="col-span-2">
+                            <strong>Tracking Number:</strong> {viewModal.order.trackingNumber}
+                          </div>
+                        )}
                       </div>
                     </DialogDescription>
                   </DialogHeader>
-                  <div className="mt-4">
-                    <h3 className="text-lg font-semibold">Items</h3>
-                    <div className="mt-2">
-                      {viewModal.order.items.map((item, index) => (
-                        <div key={index} className="flex justify-between py-2 border-b">
-                          <div className="flex-1">
-                            <div className="font-medium">
-                              {item.productId?.name || 'Deleted Product'}
-                            </div>
-                            <div className="text-sm text-gray-500">
-                              Quantity: {item.quantity}
-                            </div>
+                  <div className="mt-4 space-y-6">
+                    {/* Shipping Address */}
+                    <div>
+                      <h3 className="text-lg font-semibold mb-3">Shipping Address</h3>
+                      <div className="bg-gray-50 p-4 rounded-lg">
+                        <div className="space-y-1">
+                          <div className="font-medium">
+                            {viewModal.order.shippingAddress.firstName} {viewModal.order.shippingAddress.lastName}
                           </div>
-                          <div className="ml-4">
+                          {viewModal.order.shippingAddress.company && (
+                            <div className="text-sm text-gray-600">{viewModal.order.shippingAddress.company}</div>
+                          )}
+                          <div className="text-sm">{viewModal.order.shippingAddress.address1}</div>
+                          {viewModal.order.shippingAddress.address2 && (
+                            <div className="text-sm">{viewModal.order.shippingAddress.address2}</div>
+                          )}
+                          <div className="text-sm">
+                            {viewModal.order.shippingAddress.city}, {viewModal.order.shippingAddress.state} {viewModal.order.shippingAddress.postalCode}
+                          </div>
+                          <div className="text-sm">{viewModal.order.shippingAddress.country}</div>
+                          {viewModal.order.shippingAddress.phone && (
+                            <div className="text-sm font-medium">Phone: {viewModal.order.shippingAddress.phone}</div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Billing Address (if different) */}
+                    {viewModal.order.billingAddress && (
+                      <div>
+                        <h3 className="text-lg font-semibold mb-3">Billing Address</h3>
+                        <div className="bg-gray-50 p-4 rounded-lg">
+                          <div className="space-y-1">
                             <div className="font-medium">
-                              ₦{item.price.toLocaleString()}
+                              {viewModal.order.billingAddress.firstName} {viewModal.order.billingAddress.lastName}
                             </div>
+                            {viewModal.order.billingAddress.company && (
+                              <div className="text-sm text-gray-600">{viewModal.order.billingAddress.company}</div>
+                            )}
+                            <div className="text-sm">{viewModal.order.billingAddress.address1}</div>
+                            {viewModal.order.billingAddress.address2 && (
+                              <div className="text-sm">{viewModal.order.billingAddress.address2}</div>
+                            )}
+                            <div className="text-sm">
+                              {viewModal.order.billingAddress.city}, {viewModal.order.billingAddress.state} {viewModal.order.billingAddress.postalCode}
+                            </div>
+                            <div className="text-sm">{viewModal.order.billingAddress.country}</div>
+                            {viewModal.order.billingAddress.phone && (
+                              <div className="text-sm font-medium">Phone: {viewModal.order.billingAddress.phone}</div>
+                            )}
                           </div>
                         </div>
-                      ))}
+                      </div>
+                    )}
+
+                    {/* Order Items */}
+                    <div>
+                      <h3 className="text-lg font-semibold mb-3">Order Items</h3>
+                      <div className="space-y-2">
+                        {viewModal.order.items.map((item, index) => (
+                          <div key={index} className="flex justify-between items-center py-3 px-4 bg-white border rounded-lg">
+                            <div className="flex-1">
+                              <div className="font-medium">
+                                {item.productId?.name || 'Deleted Product'}
+                              </div>
+                              <div className="text-sm text-gray-500">
+                                Quantity: {item.quantity} × ₦{item.price.toLocaleString()}
+                              </div>
+                            </div>
+                            <div className="ml-4">
+                              <div className="font-medium">
+                                ₦{(item.price * item.quantity).toLocaleString()}
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                      
+                      {/* Order Summary */}
+                      <div className="mt-4 border-t pt-4 space-y-2">
+                        {viewModal.order.subtotal && (
+                          <div className="flex justify-between text-sm">
+                            <span>Subtotal:</span>
+                            <span>₦{viewModal.order.subtotal.toLocaleString()}</span>
+                          </div>
+                        )}
+                        {viewModal.order.shipping && viewModal.order.shipping > 0 && (
+                          <div className="flex justify-between text-sm">
+                            <span>Shipping:</span>
+                            <span>₦{viewModal.order.shipping.toLocaleString()}</span>
+                          </div>
+                        )}
+                        {viewModal.order.tax && viewModal.order.tax > 0 && (
+                          <div className="flex justify-between text-sm">
+                            <span>Tax:</span>
+                            <span>₦{viewModal.order.tax.toLocaleString()}</span>
+                          </div>
+                        )}
+                        {viewModal.order.discount && viewModal.order.discount > 0 && (
+                          <div className="flex justify-between text-sm text-green-600">
+                            <span>Discount:</span>
+                            <span>-₦{viewModal.order.discount.toLocaleString()}</span>
+                          </div>
+                        )}
+                        <div className="flex justify-between font-semibold text-lg border-t pt-2">
+                          <span>Total:</span>
+                          <span>₦{viewModal.order.total.toLocaleString()}</span>
+                        </div>
+                      </div>
                     </div>
+
+                    {/* Order Notes */}
+                    {viewModal.order.notes && (
+                      <div>
+                        <h3 className="text-lg font-semibold mb-3">Order Notes</h3>
+                        <div className="bg-yellow-50 border border-yellow-200 p-4 rounded-lg">
+                          <p className="text-sm text-gray-700">{viewModal.order.notes}</p>
+                        </div>
+                      </div>
+                    )}
                   </div>
                   <DialogFooter>
                     <Button
