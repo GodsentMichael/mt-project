@@ -19,38 +19,54 @@ export async function uploadToCloudinary(
   file: File | Buffer | string,
   folder = "ecommerce",
 ): Promise<CloudinaryUploadResult> {
-  return new Promise((resolve, reject) => {
+  return new Promise(async (resolve, reject) => {
     const uploadOptions = {
       folder,
       resource_type: "auto" as const,
       quality: "auto",
       fetch_format: "auto",
+      timeout: 30000, // 30 second timeout
     }
 
-    if (file instanceof File) {
-      // Convert File to buffer
-      file.arrayBuffer().then((buffer) => {
-        cloudinary.uploader
-          .upload_stream(uploadOptions, (error, result) => {
-            if (error) reject(error)
-            else resolve(result as CloudinaryUploadResult)
-          })
-          .end(Buffer.from(buffer))
-      })
-    } else if (typeof file === "string") {
-      cloudinary.uploader.upload(file, uploadOptions, (error, result) => {
-        if (error) reject(error)
-        else resolve(result as CloudinaryUploadResult)
-      })
-    } else if (Buffer.isBuffer(file)) {
-      cloudinary.uploader
-        .upload_stream(uploadOptions, (error, result) => {
-          if (error) reject(error)
-          else resolve(result as CloudinaryUploadResult)
+    try {
+      if (file instanceof File) {
+        // Convert File to buffer
+        const buffer = await file.arrayBuffer()
+        const base64 = `data:${file.type};base64,${Buffer.from(buffer).toString('base64')}`
+        
+        cloudinary.uploader.upload(base64, uploadOptions, (error, result) => {
+          if (error) {
+            console.error("Cloudinary upload error:", error)
+            reject(new Error(`Cloudinary upload failed: ${error.message || 'Unknown error'}`))
+          } else {
+            resolve(result as CloudinaryUploadResult)
+          }
         })
-        .end(file)
-    } else {
-      reject(new Error("Unsupported file type for uploadToCloudinary"))
+      } else if (typeof file === "string") {
+        cloudinary.uploader.upload(file, uploadOptions, (error, result) => {
+          if (error) {
+            console.error("Cloudinary upload error:", error)
+            reject(new Error(`Cloudinary upload failed: ${error.message || 'Unknown error'}`))
+          } else {
+            resolve(result as CloudinaryUploadResult)
+          }
+        })
+      } else if (Buffer.isBuffer(file)) {
+        const base64 = `data:image/jpeg;base64,${file.toString('base64')}`
+        cloudinary.uploader.upload(base64, uploadOptions, (error, result) => {
+          if (error) {
+            console.error("Cloudinary upload error:", error)
+            reject(new Error(`Cloudinary upload failed: ${error.message || 'Unknown error'}`))
+          } else {
+            resolve(result as CloudinaryUploadResult)
+          }
+        })
+      } else {
+        reject(new Error("Unsupported file type for uploadToCloudinary"))
+      }
+    } catch (err) {
+      console.error("File processing error:", err)
+      reject(new Error(`File processing failed: ${err instanceof Error ? err.message : 'Unknown error'}`))
     }
   })
 }
