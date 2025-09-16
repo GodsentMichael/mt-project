@@ -130,10 +130,6 @@ export default function NewProductPage() {
         return null
     }
 
-    console.log("Categories state:", categories)
-    console.log("Selected categoryId:", formData.categoryId)
-    console.log("Categories loading:", categoriesLoading)
-
     return (
         <div className="min-h-screen bg-gray-50">
             <AdminHeader />

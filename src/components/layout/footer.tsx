@@ -77,24 +77,24 @@ export function Footer() {
         </p>
         <div className="flex space-x-4">
           <a
-          href="#"
+          href="https://www.facebook.com/mctaylorfashionhouse/"
           className="text-gray-300 hover:text-brand-400 transition-colors"
           aria-label="Facebook"
           >
           <Facebook className="w-5 h-5" />
           </a>
-          <a
+          {/* <a
           href="#"
           className="text-gray-300 hover:text-brand-400 transition-colors"
           aria-label="X"
-          >
+          > */}
           {/* X (formerly Twitter) SVG icon */}
-          <svg viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5">
+          {/* <svg viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5">
             <path d="M17.53 2.25h3.7l-7.98 9.14 9.4 10.36h-7.39l-5.8-6.67-6.64 6.67H1.18l8.52-9.59L.5 2.25h7.54l5.19 5.97 6.3-5.97zm-1.27 17.5h2.05L6.62 4.13H4.45l11.81 15.62z"/>
           </svg>
-          </a>
+          </a> */}
           <a
-          href="#"
+          href="https://www.instagram.com/mctaylor.man/?hl=en"
           className="text-gray-300 hover:text-brand-400 transition-colors"
           aria-label="Instagram"
           >
