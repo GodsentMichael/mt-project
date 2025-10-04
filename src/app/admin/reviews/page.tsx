@@ -232,12 +232,12 @@ export default function AdminReviewsPage() {
                         <div className="flex items-start justify-between">
                           <div className="flex items-start space-x-4 flex-1">
                             <Avatar>
-                              <AvatarImage src={review.userId.image} />
-                              <AvatarFallback>{getInitials(review.userId.name)}</AvatarFallback>
+                              {review.userId?.image && <AvatarImage src={review.userId.image} />}
+                              <AvatarFallback>{getInitials(review.userId?.name || 'U')}</AvatarFallback>
                             </Avatar>
                             <div className="flex-1">
                               <div className="flex items-center space-x-2 mb-2">
-                                <h3 className="font-medium">{review.userId.name}</h3>
+                                <h3 className="font-medium">{review.userId?.name}</h3>
                                 <div className="flex items-center">
                                   {renderStars(review.rating)}
                                 </div>
@@ -246,7 +246,7 @@ export default function AdminReviewsPage() {
                                 </Badge>
                               </div>
                               <div className="text-sm text-gray-600 mb-2">
-                                Product: {review.productId.name}
+                                Product: {review.productId?.name}
                               </div>
                               <h4 className="font-medium mb-1">{review.title}</h4>
                               <p className="text-gray-700 mb-3">{review.comment}</p>

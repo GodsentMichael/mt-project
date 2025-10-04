@@ -24,13 +24,28 @@ export function AdminHeader() {
     newsletters: 0,
     reviews: 0,
   })
-  type Notification = { 
-    link: string; 
+  type Notification = {
+    _id: string;
+    link: string;
     message: string;
     createdAt: string;
     type: string;
   }
   const [notificationList, setNotificationList] = useState<Notification[]>([])
+
+  const markAsRead = async (notificationId: string) => {
+    try {
+      await fetch("/api/admin/notifications", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ notificationId }),
+      })
+      // Remove from local state
+      setNotificationList((prev) => prev.filter((n) => n._id !== notificationId))
+    } catch (error) {
+      console.error("Failed to mark notification as read", error)
+    }
+  }
 
   useEffect(() => {
     // Fetch notifications list from API
@@ -83,11 +98,12 @@ export function AdminHeader() {
               <DropdownMenuSeparator />
               <div className="max-h-96 overflow-y-auto">
                 {notificationList.length > 0 ? (
-                  notificationList.slice(0, 10).map((notification, index) => (
-                    <DropdownMenuItem key={index} className="p-3 hover:bg-gray-50">
+                  notificationList.slice(0, 10).map((notification) => (
+                    <DropdownMenuItem key={notification._id} className="p-3 hover:bg-gray-50">
                       <div className="flex flex-col w-full">
-                        <a 
-                          href={notification.link} 
+                        <a
+                          href={notification.link}
+                          onClick={() => markAsRead(notification._id)}
                           className="text-sm font-medium text-gray-900 hover:text-blue-600 line-clamp-2"
                         >
                           {notification.message}
